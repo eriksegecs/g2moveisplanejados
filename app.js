@@ -9,6 +9,7 @@
     cutCost: 2,
     whatsappNumber: "5513982327841",
     emailTo: "eriksegecs@yahoo.com.br",
+    emailEndpoint: "https://formsubmit.co/ajax/eriksegecs@yahoo.com.br",
   };
 
   const state = {
@@ -455,7 +456,30 @@
     return rows;
   }
 
-  function requestOrder() {
+  async function sendEmailByForm(orderCode, body) {
+    const payload = {
+      _subject: "Pedido " + orderCode,
+      _captcha: "false",
+      _template: "table",
+      pedido: orderCode,
+      mensagem: body,
+    };
+
+    const response = await fetch(DEFAULTS.emailEndpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error("Falha ao enviar formulario de e-mail.");
+    }
+  }
+
+  async function requestOrder() {
     if (!state.result || !state.result.layouts.length) {
       alert("Calcule o layout antes de solicitar o pedido.");
       return;
@@ -474,12 +498,24 @@
       headerTab,
       ...rows.map((r) => r.join("\t")),
     ];
-    const subject = "Pedido " + orderCode;
     const body = bodyLines.join("\n");
 
-    const waUrl = "https://wa.me/" + DEFAULTS.whatsappNumber + "?text=" + encodeURIComponent("Solicitacao de pedido: " + orderCode);
-    window.open(waUrl, "_blank");
-    window.location.href = "mailto:" + DEFAULTS.emailTo + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+    const requestBtn = document.getElementById("request-order-btn");
+    requestBtn.disabled = true;
+    try {
+      await sendEmailByForm(orderCode, body);
+      const waUrl =
+        "https://wa.me/" +
+        DEFAULTS.whatsappNumber +
+        "?text=" +
+        encodeURIComponent("Solicitacao de pedido: " + orderCode);
+      window.open(waUrl, "_blank");
+      alert("Pedido enviado por formulario. Codigo: " + orderCode);
+    } catch (error) {
+      alert(error.message || "Nao foi possivel enviar o formulario.");
+    } finally {
+      requestBtn.disabled = false;
+    }
   }
 
   function calculate() {
@@ -548,7 +584,9 @@
   toggleLabelsEl.addEventListener("change", applyOverlayState);
   toggleDimensionsEl.addEventListener("change", applyOverlayState);
   document.getElementById("calculate-btn").addEventListener("click", calculate);
-  document.getElementById("request-order-btn").addEventListener("click", requestOrder);
+  document.getElementById("request-order-btn").addEventListener("click", function () {
+    requestOrder();
+  });
 
   resetProject();
 })();

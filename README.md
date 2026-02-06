@@ -20,5 +20,6 @@ No arquivo `landing/app.js`, altere:
 - custos e medidas padrao em `DEFAULTS`.
 
 ## Observacao
-- O envio de e-mail usa `mailto:` (abre o cliente de e-mail do usuario com assunto/corpo pronto).
+- O envio de e-mail agora usa formulario HTTP via FormSubmit (`https://formsubmit.co/ajax/...`), sem backend.
+- No primeiro uso, voce precisa confirmar o endpoint por e-mail (verifique caixa de entrada/spam).
 - O WhatsApp envia apenas o numero do pedido no texto.
