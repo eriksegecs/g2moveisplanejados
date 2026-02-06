@@ -4,7 +4,7 @@
   const DEFAULTS = {
     panelWidth: 2750,
     panelHeight: 1850,
-    cutWidth: 3,
+    cutWidth: 14,
     panelCost: 350,
     cutCost: 2,
     whatsappNumber: "5513982327841",
@@ -15,6 +15,34 @@
   const state = {
     result: null,
   };
+
+  const colorPalette = [
+    { name: "Azul Sereno", url: "https://arauco.com.br/wp-content/uploads/2024/03/AZUL-SERENO-185x275-1.jpg" },
+    { name: "Beige", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-beige-arauco.webp" },
+    { name: "Beton", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-beton-arauco.webp" },
+    { name: "Branco Supremo", url: "https://arauco.com.br/wp-content/uploads/2024/03/Branco-Supremo-_Chess-185x275-1-scaled.jpg" },
+    { name: "Cacao", url: "https://arauco.com.br/wp-content/uploads/2024/03/Cacao-Chess-185x275-1-scaled.jpg" },
+    { name: "Cafelatte", url: "https://arauco.com.br/wp-content/uploads/2024/03/produto-mdf-cafelatte-arauco.webp" },
+    { name: "Canela", url: "https://arauco.com.br/wp-content/uploads/2024/03/Canela-185x275-1-scaled.jpg" },
+    { name: "Cinza Cristal", url: "https://arauco.com.br/wp-content/uploads/2024/03/Cinza-Cristal-_Chess-185x275-1-scaled.jpg" },
+    { name: "Cinza Puro", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-cinza-puro.webp" },
+    { name: "Connect", url: "https://arauco.com.br/wp-content/uploads/2024/03/Connect-185x275-1-scaled.jpg" },
+    { name: "Cristalina", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-cristalina-arauco.webp" },
+    { name: "Damasco", url: "https://arauco.com.br/wp-content/uploads/2024/03/Dasmasco-185-x-275-scaled.jpg" },
+    { name: "Ebano", url: "https://arauco.com.br/wp-content/uploads/2024/03/Ebano-Chess-185x275-1-scaled.jpg" },
+    { name: "Frape", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-frape-arauco.webp" },
+    { name: "Grafito", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-grafito-arauco.webp" },
+    { name: "Gris", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-griss.webp" },
+    { name: "Jalapao", url: "https://arauco.com.br/wp-content/uploads/2024/03/Jalapao-185-x-275-3.jpg" },
+    { name: "Kashmir", url: "https://arauco.com.br/wp-content/uploads/2024/03/Kashmir-185x275-1-scaled.jpg" },
+    { name: "Lavanda", url: "https://arauco.com.br/wp-content/uploads/2024/03/04-Sala-de-Estar-Madeiral-e-Lavanda-Final-scaled.jpg" },
+    { name: "Lord", url: "https://arauco.com.br/wp-content/uploads/2024/03/Lord-185x275-1-scaled.jpg" },
+    { name: "Maragogi", url: "https://arauco.com.br/wp-content/uploads/2024/03/Maragogi-185-x-275-3.jpg" },
+    { name: "Oceano", url: "https://arauco.com.br/wp-content/uploads/2024/01/oceano.webp" },
+    { name: "Sal Rosa", url: "https://arauco.com.br/wp-content/uploads/2024/03/Sal-Rosa-185x275-1-scaled.jpg" },
+    { name: "Salvia", url: "https://arauco.com.br/wp-content/uploads/2024/03/SALVIA-185x275-1-scaled.jpg" },
+    { name: "Verde Jade", url: "https://arauco.com.br/wp-content/uploads/2024/03/Verde-Jade-183x275_menor-scaled.jpg" },
+  ];
 
   const itemsEl = document.getElementById("items");
   const layoutGridEl = document.getElementById("layout-grid");
@@ -41,14 +69,53 @@
     return label;
   }
 
+  let colorGroupId = 0;
+
+  function buildColorPalette(groupName, defaultColor) {
+    return (
+      '<div class="color-picker" data-role="color-picker">' +
+      '<button type="button" class="color-toggle" aria-label="Selecionar cor">' +
+      '<span class="swatch swatch-selected" data-role="color-preview"></span>' +
+      "</button>" +
+      '<div class="color-palette" role="radiogroup" aria-label="Cor">' +
+      colorPalette
+        .map((color) => {
+          const checked = color.name === defaultColor ? " checked" : "";
+          return (
+            '<label class="color-swatch" title="' +
+            color.name +
+            '">' +
+            '<input type="radio" data-role="item-color" name="' +
+            groupName +
+            '" value="' +
+            color.name +
+            '"' +
+            checked +
+            ">" +
+            '<span class="swatch" style="background-image:url(' +
+            color.url +
+            ')"></span>' +
+            "</label>"
+          );
+        })
+        .join("") +
+      "</div>" +
+      "</div>"
+    );
+  }
+
   function rowTemplate() {
     const row = document.createElement("div");
     row.className = "item-row";
+    colorGroupId += 1;
+    const groupName = "item_color_" + colorGroupId;
     row.innerHTML = [
       '<span class="item-label"></span>',
       '<input type="number" name="item_width" min="1" required>',
       '<input type="number" name="item_height" min="1" required>',
       '<input type="number" name="item_qty" min="1" value="1" required>',
+      '<select name="item_thickness" class="item-select"><option value="6">6mm</option><option value="15">15mm</option><option value="18">18mm</option></select>',
+      buildColorPalette(groupName, "Branco Supremo"),
       '<label class="checkbox compact"><input type="checkbox" class="rotate-toggle" checked></label>',
       '<button class="btn btn-ghost remove-row compact" type="button">-</button>',
     ].join("");
@@ -71,8 +138,18 @@
       row.querySelector('input[name="item_height"]').value = values.height;
       row.querySelector('input[name="item_qty"]').value = values.quantity;
       row.querySelector(".rotate-toggle").checked = Boolean(values.canRotate);
+      if (values.thickness) {
+        row.querySelector('select[name="item_thickness"]').value = String(values.thickness);
+      }
+      if (values.color) {
+        const radio = row.querySelector(`input[data-role="item-color"][value="${values.color}"]`);
+        if (radio) {
+          radio.checked = true;
+        }
+      }
     }
     itemsEl.appendChild(row);
+    syncColorPreview(row);
     updateLabels();
   }
 
@@ -88,6 +165,9 @@
       const height = Number(row.querySelector('input[name="item_height"]').value || 0);
       const quantity = Number(row.querySelector('input[name="item_qty"]').value || 0);
       const canRotate = row.querySelector(".rotate-toggle").checked;
+      const thickness = row.querySelector('select[name="item_thickness"]').value;
+      const colorInput = row.querySelector('input[data-role="item-color"]:checked');
+      const color = colorInput ? colorInput.value : "White";
       if (width > 0 && height > 0 && quantity > 0) {
         items.push({
           label: labelForIndex(idx),
@@ -95,10 +175,24 @@
           height: height,
           quantity: quantity,
           canRotate: canRotate,
+          thickness: thickness,
+          color: color,
         });
       }
     });
     return items;
+  }
+
+  function findPaletteByName(name) {
+    return colorPalette.find((color) => color.name === name) || colorPalette[0];
+  }
+
+  function syncColorPreview(row) {
+    const colorInput = row.querySelector('input[data-role="item-color"]:checked');
+    const preview = row.querySelector('[data-role="color-preview"]');
+    if (!preview) return;
+    const color = findPaletteByName(colorInput ? colorInput.value : "Branco Supremo");
+    preview.style.backgroundImage = "url(" + color.url + ")";
   }
 
   function expandItems(items) {
@@ -110,6 +204,8 @@
           height: item.height,
           canRotate: item.canRotate,
           label: item.label + i,
+          thickness: item.thickness,
+          color: item.color,
         });
       }
     });
@@ -233,6 +329,8 @@
       width: chosen.itemW,
       height: chosen.itemH,
       label: item.label + (chosen.rotated ? " (r)" : ""),
+      thickness: item.thickness,
+      color: item.color,
     });
 
     const nextFree = [];
@@ -446,8 +544,8 @@
           mmToM(item.width),
           mmToM(item.height),
           rotated,
-          "Material gerado pela simulacao",
-          "18",
+          "Cor: " + (item.color || "Branca"),
+          String(item.thickness || "6"),
           "P" + String(panelIndex + 1),
         ]);
         idx += 1;
@@ -546,17 +644,31 @@
   function resetProject() {
     state.result = null;
     clearRows();
-    addRow({ width: 1000, height: 1000, quantity: 1, canRotate: true });
+    addRow({ width: 1000, height: 1000, quantity: 1, canRotate: true, thickness: 6, color: "Branco Supremo" });
     renderSummary();
     renderLayouts();
     applyOverlayState();
   }
 
   document.getElementById("add-row-btn").addEventListener("click", function () {
-    addRow({ width: 1000, height: 1000, quantity: 1, canRotate: true });
+    addRow({ width: 1000, height: 1000, quantity: 1, canRotate: true, thickness: 6, color: "Branco Supremo" });
   });
 
   itemsEl.addEventListener("click", function (event) {
+    const toggle = event.target.closest(".color-toggle");
+    if (toggle) {
+      const picker = toggle.closest('[data-role="color-picker"]');
+      if (picker) {
+        const isOpen = picker.classList.toggle("is-open");
+        if (isOpen) {
+          document.querySelectorAll('[data-role="color-picker"].is-open').forEach((openPicker) => {
+            if (openPicker !== picker) openPicker.classList.remove("is-open");
+          });
+        }
+      }
+      return;
+    }
+
     const button = event.target.closest(".remove-row");
     if (!button) return;
     const row = button.closest(".item-row");
@@ -573,6 +685,23 @@
         }
       });
     }
+  });
+
+  itemsEl.addEventListener("change", function (event) {
+    const input = event.target.closest('input[data-role="item-color"]');
+    if (!input) return;
+    const row = input.closest(".item-row");
+    if (!row) return;
+    syncColorPreview(row);
+    const picker = row.querySelector('[data-role="color-picker"]');
+    if (picker) picker.classList.remove("is-open");
+  });
+
+  document.addEventListener("click", function (event) {
+    if (event.target.closest('[data-role="color-picker"]')) return;
+    document.querySelectorAll('[data-role="color-picker"].is-open').forEach((picker) => {
+      picker.classList.remove("is-open");
+    });
   });
 
   panelListEl.addEventListener("click", function (event) {
