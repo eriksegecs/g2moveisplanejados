@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>G2 Moveis Planejados - Orcamento</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="opcut-screen">
+    <header class="opcut-toolbar">
+      <div class="opcut-brand">LAYOUT CUSTOMIZADO - g2moveisplanejados</div>
+      <div class="opcut-actions">
+        <button class="btn btn-outline" id="request-order-btn" type="button">Solicitar Orcamento</button>
+        <button class="btn" id="calculate-btn" type="button">Calcular</button>
+      </div>
+    </header>
+
+    <section class="opcut-body">
+      <aside class="opcut-sidebar">
+        <h2>Orcamento</h2>
+        <p>Informe as dimensoes das placas em milimetros, quantidade e se pode rotacionar.</p>
+
+        <div class="item-table">
+          <div class="item-table-header">
+            <span>ID</span>
+            <span>Largura</span>
+            <span>Altura</span>
+            <span>Qtd</span>
+            <span>Rot</span>
+            <span></span>
+          </div>
+          <div class="item-table-body" id="items"></div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-outline" id="add-row-btn" type="button">Adicionar placa</button>
+        </div>
+      </aside>
+
+      <div class="opcut-workspace has-result">
+        <div class="opcut-canvas">
+          <div id="layout-grid" class="layout-grid"></div>
+          <div id="layout-empty" class="opcut-empty">Adicione itens e clique em Calcular para gerar o layout.</div>
+        </div>
+
+        <aside class="opcut-top">
+          <div class="opcut-summary">
+            <div><strong>Placas necessarias:</strong> <span id="sum-panels">0</span></div>
+            <div><strong>Cortes estimados:</strong> <span id="sum-cuts">0</span></div>
+            <div><strong>Valor do orcamento:</strong> R$ <span id="sum-cost">0.00</span></div>
+            <div class="muted">Metodo: <span id="sum-method">custom-maxrects</span></div>
+          </div>
+
+          <div class="layout-control-panel">
+            <div class="panel-list-title">Visualizacao</div>
+            <label class="checkbox compact">
+              <input id="toggle-labels" type="checkbox" checked>
+              <span>Mostrar label</span>
+            </label>
+            <label class="checkbox compact">
+              <input id="toggle-dimensions" type="checkbox" checked>
+              <span>Mostrar dimensoes</span>
+            </label>
+          </div>
+
+          <div class="panel-list fixed-panel-list" id="panel-list">
+            <div class="panel-list-title">Paineis</div>
+            <div class="opcut-empty small">Nenhum painel calculado.</div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
