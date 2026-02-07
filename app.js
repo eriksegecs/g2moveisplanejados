@@ -508,6 +508,7 @@
     layoutGridEl.innerHTML = result.layouts
       .map((layout, panelIndex) => {
         const patternId = "panelPattern" + panelIndex;
+        const hatchId = "pieceHatch" + panelIndex;
         const itemsSvg = layout.items
           .map((item) => {
             const lf = labelFontSize(item);
@@ -516,7 +517,7 @@
             const cy = Math.round(item.y + item.height / 2);
             const tx = Math.round(item.x + df);
             return [
-              `<rect class="layout-item" x="${Math.round(item.x)}" y="${Math.round(item.y)}" width="${Math.round(item.width)}" height="${Math.round(item.height)}"></rect>`,
+              `<rect class="layout-item" x="${Math.round(item.x)}" y="${Math.round(item.y)}" width="${Math.round(item.width)}" height="${Math.round(item.height)}" fill="url(#${hatchId})"></rect>`,
               `<text class="layout-label-text" x="${cx}" y="${cy}" style="font-size:${lf}px">${esc(item.label || "Item")}</text>`,
               `<text class="layout-dim-text" x="${cx}" y="${Math.round(item.y + df)}" style="font-size:${df}px">${Math.round(item.width)}</text>`,
               `<text class="layout-dim-text" x="${tx}" y="${cy}" transform="rotate(-90 ${tx} ${cy})" style="font-size:${df}px">${Math.round(item.height)}</text>`,
@@ -532,6 +533,10 @@
           `<defs>`,
           `<pattern id="${patternId}" patternUnits="userSpaceOnUse" width="180" height="180">`,
           `<image href="${layout.colorUrl || ""}" x="0" y="0" width="180" height="180" preserveAspectRatio="xMidYMid slice"></image>`,
+          `</pattern>`,
+          `<pattern id="${hatchId}" patternUnits="userSpaceOnUse" width="14" height="14" patternTransform="rotate(45)">`,
+          `<rect x="0" y="0" width="14" height="14" fill="transparent"></rect>`,
+          `<line x1="0" y1="0" x2="0" y2="14" stroke="rgba(70,70,70,0.55)" stroke-width="2"></line>`,
           `</pattern>`,
           `</defs>`,
           `<rect class="layout-bg" x="0" y="0" width="${Math.round(layout.width)}" height="${Math.round(layout.height)}" fill="url(#${patternId})"></rect>`,
