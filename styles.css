@@ -702,36 +702,42 @@ input {
   .item-table-header,
   .item-row {
     gap: 3px;
-    grid-template-columns: 24px 5.2ch 5.2ch 40px 48px 34px 28px 24px;
+    grid-template-columns: 24px 56px 56px 40px 48px 34px 28px 24px;
     min-width: 330px;
+  }
+
+  .item-table-header span {
+    text-align: center;
   }
 
   .item-row input[name="item_width"],
   .item-row input[name="item_height"] {
-    width: 5.2ch;
-    min-width: 5.2ch;
-    max-width: 5.2ch;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
     padding: 6px 0;
     font-size: 0.82rem;
   }
 
   .item-row input[name="item_label"] {
-    width: 28px;
-    min-width: 28px;
-    max-width: 28px;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
     padding: 6px 2px;
     font-size: 0.72rem;
   }
 
   .item-row input[name="item_qty"] {
-    min-width: 40px;
-    max-width: 40px;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
     padding: 5px 2px;
   }
 
   .item-row select[name="item_thickness"] {
-    min-width: 48px;
-    max-width: 48px;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
     padding: 5px 2px;
     font-size: 0.75rem;
   }
