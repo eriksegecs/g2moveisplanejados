@@ -86,6 +86,8 @@ input {
   letter-spacing: 1px;
   text-transform: uppercase;
   font-size: 0.85rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .opcut-actions {
@@ -619,6 +621,15 @@ input {
     max-width: 100%;
   }
 
+  .opcut-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .opcut-actions {
+    width: 100%;
+  }
+
   .opcut-toolbar,
   .opcut-sidebar,
   .opcut-workspace {
@@ -642,6 +653,14 @@ input {
   .opcut-top {
     position: static;
     max-height: none;
+  }
+
+  .layout-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .layout-card {
+    min-height: 340px;
   }
 
   .item-table {
