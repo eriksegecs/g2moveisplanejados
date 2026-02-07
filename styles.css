@@ -442,6 +442,19 @@ input {
   gap: 6px;
 }
 
+#color-popup-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 12000;
+}
+
+#color-popup-layer .color-palette.is-floating {
+  position: fixed;
+  display: grid;
+  pointer-events: auto;
+}
+
 .color-picker.is-open .color-palette {
   display: grid;
 }

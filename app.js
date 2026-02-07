@@ -1052,6 +1052,71 @@
     });
   }
 
+  let floatingPalette = null;
+
+  function isMobileViewport() {
+    return window.matchMedia("(max-width: 980px)").matches;
+  }
+
+  function ensureColorLayer() {
+    let layer = document.getElementById("color-popup-layer");
+    if (!layer) {
+      layer = document.createElement("div");
+      layer.id = "color-popup-layer";
+      document.body.appendChild(layer);
+    }
+    return layer;
+  }
+
+  function closeFloatingPalette() {
+    if (!floatingPalette) return;
+    const { picker, palette } = floatingPalette;
+    palette.classList.remove("is-floating");
+    palette.style.left = "";
+    palette.style.top = "";
+    palette.style.display = "";
+    picker.appendChild(palette);
+    floatingPalette = null;
+  }
+
+  function openFloatingPalette(picker) {
+    const toggle = picker.querySelector(".color-toggle");
+    const palette = picker.querySelector(".color-palette");
+    if (!toggle || !palette) return;
+
+    closeFloatingPalette();
+
+    const layer = ensureColorLayer();
+    layer.appendChild(palette);
+    palette.classList.add("is-floating");
+    palette.style.display = "grid";
+
+    requestAnimationFrame(() => {
+      const rect = toggle.getBoundingClientRect();
+      const pw = palette.offsetWidth || 130;
+      const ph = palette.offsetHeight || 130;
+      let left = rect.left;
+      left = Math.max(8, Math.min(left, window.innerWidth - pw - 8));
+
+      let top = rect.bottom + 6;
+      if (top + ph > window.innerHeight - 8) {
+        top = Math.max(8, rect.top - ph - 6);
+      }
+
+      palette.style.left = left + "px";
+      palette.style.top = top + "px";
+    });
+
+    floatingPalette = { picker, palette };
+  }
+
+  function closeAllColorPickers() {
+    document.querySelectorAll('[data-role="color-picker"].is-open').forEach((picker) => {
+      picker.classList.remove("is-open");
+    });
+    closeFloatingPalette();
+  }
+
   itemsEl.addEventListener("click", function (event) {
     const toggle = event.target.closest(".color-toggle");
     if (toggle) {
@@ -1062,6 +1127,13 @@
           document.querySelectorAll('[data-role="color-picker"].is-open').forEach((openPicker) => {
             if (openPicker !== picker) openPicker.classList.remove("is-open");
           });
+          if (isMobileViewport()) {
+            openFloatingPalette(picker);
+          } else {
+            closeFloatingPalette();
+          }
+        } else {
+          closeFloatingPalette();
         }
       }
       return;
@@ -1095,6 +1167,7 @@
       syncColorPreview(row);
       const picker = row.querySelector('[data-role="color-picker"]');
       if (picker) picker.classList.remove("is-open");
+      closeFloatingPalette();
       scheduleCalculate();
       return;
     }
@@ -1117,10 +1190,17 @@
   });
 
   document.addEventListener("click", function (event) {
-    if (event.target.closest('[data-role="color-picker"]')) return;
-    document.querySelectorAll('[data-role="color-picker"].is-open').forEach((picker) => {
-      picker.classList.remove("is-open");
-    });
+    if (event.target.closest('[data-role="color-picker"]') || event.target.closest("#color-popup-layer")) return;
+    closeAllColorPickers();
+  });
+
+  window.addEventListener("resize", function () {
+    if (!floatingPalette) return;
+    if (!isMobileViewport()) {
+      closeAllColorPickers();
+      return;
+    }
+    openFloatingPalette(floatingPalette.picker);
   });
 
   panelListEl.addEventListener("click", function (event) {
