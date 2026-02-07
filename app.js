@@ -1160,7 +1160,7 @@
     }
   });
 
-  itemsEl.addEventListener("change", function (event) {
+  function handleColorOrRowChange(event) {
     const input = event.target.closest('input[data-role="item-color"]');
     if (input) {
       let picker = input.closest('[data-role="color-picker"]');
@@ -1179,7 +1179,9 @@
     if (other) {
       scheduleCalculate();
     }
-  });
+  }
+
+  document.addEventListener("change", handleColorOrRowChange);
 
   itemsEl.addEventListener("input", function (event) {
     const input = event.target.closest('input[name="item_label"], input[name="item_width"], input[name="item_height"], input[name="item_qty"]');
