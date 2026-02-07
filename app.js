@@ -948,14 +948,27 @@
         rect.setAttribute("stroke-width", "2");
         svg.appendChild(rect);
 
+        const cx = Math.round(item.x + item.width / 2);
+        const cy = Math.round(item.y + item.height / 2);
+
         const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        text.setAttribute("x", Math.round(item.x + item.width / 2));
-        text.setAttribute("y", Math.round(item.y + item.height / 2));
-        text.setAttribute("font-size", "40");
+        text.setAttribute("x", cx);
+        text.setAttribute("y", cy - 22);
+        text.setAttribute("font-size", "36");
+        text.setAttribute("font-weight", "700");
         text.setAttribute("text-anchor", "middle");
         text.setAttribute("dominant-baseline", "middle");
         text.textContent = item.label || "Item";
         svg.appendChild(text);
+
+        const dims = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        dims.setAttribute("x", cx);
+        dims.setAttribute("y", cy + 22);
+        dims.setAttribute("font-size", "28");
+        dims.setAttribute("text-anchor", "middle");
+        dims.setAttribute("dominant-baseline", "middle");
+        dims.textContent = Math.round(item.width) + " x " + Math.round(item.height) + " mm";
+        svg.appendChild(dims);
       });
 
       content.appendChild(svg);
