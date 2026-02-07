@@ -534,6 +534,7 @@ input {
   height: 100%;
   background: #f7f4ee;
   border-radius: 0;
+  isolation: isolate;
 }
 
 .layout-bg {
@@ -542,23 +543,26 @@ input {
 }
 
 .layout-item {
-  stroke: rgba(80, 80, 80, 0.7);
+  stroke: rgba(255, 255, 255, 0.9);
   stroke-width: 2;
+  mix-blend-mode: difference;
 }
 
 .layout-label-text {
-  fill: #2b2018;
+  fill: #fff;
   text-anchor: middle;
   dominant-baseline: middle;
   pointer-events: none;
+  mix-blend-mode: difference;
 }
 
 .layout-dim-text {
-  fill: #3f3128;
+  fill: #fff;
   font-weight: bold;
   text-anchor: middle;
   dominant-baseline: middle;
   pointer-events: none;
+  mix-blend-mode: difference;
 }
 
 .layout-grid.hide-labels .layout-label-text {
