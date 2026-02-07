@@ -69,7 +69,8 @@ input {
   background: #fff;
   border-radius: 18px;
   border: 1px solid rgba(0, 0, 0, 0.08);
-  overflow: visible;
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
 .opcut-toolbar {
@@ -229,8 +230,13 @@ input {
 
 .lead-fields {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   margin: 10px 0 12px;
+}
+
+.lead-fields label {
+  min-width: 0;
 }
 
 .lead-fields label {
@@ -645,6 +651,7 @@ input {
   .opcut-sidebar {
     border-right: none;
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    overflow-x: auto;
   }
 
   .opcut-workspace {
@@ -703,5 +710,11 @@ input {
   .swatch {
     width: 16px;
     height: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .lead-fields {
+    grid-template-columns: 1fr;
   }
 }
