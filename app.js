@@ -202,11 +202,12 @@
     return colorPalette.find((color) => color.name === name) || colorPalette[0];
   }
 
-  function syncColorPreview(row) {
+  function syncColorPreview(row, selectedColorName) {
     const colorInput = row.querySelector('input[data-role="item-color"]:checked');
     const preview = row.querySelector('[data-role="color-preview"]');
     if (!preview) return;
-    const color = findPaletteByName(colorInput ? colorInput.value : "Branco TX");
+    const colorName = selectedColorName || (colorInput ? colorInput.value : "Branco TX");
+    const color = findPaletteByName(colorName);
     preview.style.backgroundImage = "url(" + color.url + ")";
   }
 
@@ -1168,7 +1169,7 @@
       }
       const row = picker ? picker.closest(".item-row") : null;
       if (!row) return;
-      syncColorPreview(row);
+      syncColorPreview(row, input.value);
       if (picker) picker.classList.remove("is-open");
       closeFloatingPalette();
       scheduleCalculate();
