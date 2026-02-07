@@ -701,8 +701,9 @@ input {
 
   .item-table-header,
   .item-row {
-    grid-template-columns: 28px 64px 64px 46px 54px 40px 32px 28px;
-    min-width: 380px;
+    gap: 3px;
+    grid-template-columns: 24px 5.2ch 5.2ch 40px 48px 34px 28px 24px;
+    min-width: 330px;
   }
 
   .item-row input[name="item_width"],
@@ -723,21 +724,25 @@ input {
   }
 
   .item-row input[name="item_qty"] {
-    min-width: 46px;
-    max-width: 46px;
-    padding: 6px 4px;
+    min-width: 40px;
+    max-width: 40px;
+    padding: 5px 2px;
   }
 
   .item-row select[name="item_thickness"] {
-    min-width: 54px;
-    max-width: 54px;
-    padding: 6px 4px;
-    font-size: 0.78rem;
+    min-width: 48px;
+    max-width: 48px;
+    padding: 5px 2px;
+    font-size: 0.75rem;
+  }
+
+  .remove-row.compact {
+    padding: 3px 6px;
   }
 
   .swatch {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
   }
 }
 
