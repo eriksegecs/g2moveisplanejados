@@ -37,7 +37,7 @@
     { name: "Azul Sereno", url: "https://arauco.com.br/wp-content/uploads/2024/03/AZUL-SERENO-185x275-1.jpg" },
     { name: "Beige", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-beige-arauco.webp" },
     { name: "Beton", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-beton-arauco.webp" },
-    { name: "Branco Supremo", url: "https://arauco.com.br/wp-content/uploads/2024/03/Branco-Supremo-_Chess-185x275-1-scaled.jpg" },
+    { name: "Branco TX", url: "https://arauco.com.br/wp-content/uploads/2024/03/Branco-Supremo-_Chess-185x275-1-scaled.jpg" },
     { name: "Cacao", url: "https://arauco.com.br/wp-content/uploads/2024/03/Cacao-Chess-185x275-1-scaled.jpg" },
     { name: "Cafelatte", url: "https://arauco.com.br/wp-content/uploads/2024/03/produto-mdf-cafelatte-arauco.webp" },
     { name: "Canela", url: "https://arauco.com.br/wp-content/uploads/2024/03/Canela-185x275-1-scaled.jpg" },
@@ -132,7 +132,7 @@
       '<input type="number" name="item_height" min="1" required>',
       '<input type="number" name="item_qty" min="1" value="1" required>',
       '<select name="item_thickness" class="item-select"><option value="6">6mm</option><option value="15">15mm</option><option value="18">18mm</option></select>',
-      buildColorPalette(groupName, "Branco Supremo"),
+      buildColorPalette(groupName, "Branco TX"),
       '<label class="checkbox compact"><input type="checkbox" class="rotate-toggle" checked></label>',
       '<button class="btn btn-ghost remove-row compact" type="button">-</button>',
     ].join("");
@@ -208,7 +208,7 @@
     const colorInput = row.querySelector('input[data-role="item-color"]:checked');
     const preview = row.querySelector('[data-role="color-preview"]');
     if (!preview) return;
-    const color = findPaletteByName(colorInput ? colorInput.value : "Branco Supremo");
+    const color = findPaletteByName(colorInput ? colorInput.value : "Branco TX");
     preview.style.backgroundImage = "url(" + color.url + ")";
   }
 
@@ -400,7 +400,7 @@
   function estimateQuote(items, settings) {
     const expanded = expandItems(items);
     const grouped = expanded.reduce((acc, item) => {
-      const key = item.color || "Branco Supremo";
+      const key = item.color || "Branco TX";
       if (!acc[key]) acc[key] = [];
       acc[key].push(item);
       return acc;
@@ -435,7 +435,8 @@
     let cutCostTotal = 0;
 
     if (settings.cutMode === "router") {
-      totalCuts = Math.max(4, placedCount * 4);
+      const extraCuts = Math.max(0, placedCount - 1);
+      totalCuts = Math.max(4, placedCount * 2 + extraCuts);
       cutCostTotal = 0;
       layouts.forEach((layout) => {
         layout.items.forEach((item) => {
@@ -448,11 +449,20 @@
         });
       });
     } else {
-      totalCuts = Math.max(4, placedCount * 2);
+      const extraCuts = Math.max(0, placedCount - 1);
+      totalCuts = Math.max(4, placedCount * 2 + extraCuts);
       cutCostTotal = totalCuts * settings.cutCostSaw;
     }
 
-    const totalCost = totalPanels * settings.panelCost + cutCostTotal;
+    let panelCostTotal = 0;
+    layouts.forEach((layout) => {
+      if (String(layout.color || "").toLowerCase() === "branco tx") {
+        panelCostTotal += 260;
+      } else {
+        panelCostTotal += 400;
+      }
+    });
+    const totalCost = panelCostTotal + cutCostTotal;
     return {
       totalPanels: totalPanels,
       totalCuts: totalCuts,
@@ -476,14 +486,14 @@
 
   function dimFontSize(item) {
     const minSide = Math.min(item.width, item.height);
-    const val = Math.round(minSide * 0.17);
-    return Math.max(70, Math.min(180, val));
+    const val = Math.round(minSide * 0.1);
+    return Math.max(50, Math.min(120, val));
   }
 
   function labelFontSize(item) {
     const minSide = Math.min(item.width, item.height);
-    const val = Math.round(minSide * 0.26);
-    return Math.max(90, Math.min(260, val));
+    const val = Math.round(minSide * 0.16);
+    return Math.max(70, Math.min(160, val));
   }
 
   function renderLayouts() {
@@ -517,8 +527,8 @@
 
         return [
           `<div class="layout-card" data-panel-index="${panelIndex}">`,
-          `<div class="layout-title">Placa ${panelIndex + 1}</div>`,
-          `<div class="layout-meta">Cor: ${esc(layout.color || "Branco Supremo")} | Medidas internas: ${Math.round(layout.width)} x ${Math.round(layout.height)} mm</div>`,
+          `<div class="layout-title">Painel ${panelIndex + 1} - ${esc(layout.color || "Branco TX")}</div>`,
+          `<div class="layout-meta">Medidas internas: ${Math.round(layout.width)} x ${Math.round(layout.height)} mm</div>`,
           `<svg class="layout-svg" viewBox="0 0 ${Math.round(layout.width)} ${Math.round(layout.height)}" preserveAspectRatio="xMidYMid meet">`,
           `<defs>`,
           `<pattern id="${patternId}" patternUnits="userSpaceOnUse" width="180" height="180">`,
@@ -543,8 +553,8 @@
           return [
             '<div class="panel-list-group">',
             `<button class="panel-list-row" type="button" data-panel-index="${idx}">`,
-            `<span class="panel-list-label">Placa ${idx + 1}</span>`,
-            `<span class="panel-list-size">${esc(layout.color || "Branco Supremo")} - ${Math.round(layout.width)} x ${Math.round(layout.height)} mm</span>`,
+            `<span class="panel-list-label">Painel ${idx + 1} - ${esc(layout.color || "Branco TX")}</span>`,
+            `<span class="panel-list-size">${Math.round(layout.width)} x ${Math.round(layout.height)} mm</span>`,
             "</button>",
             `<div class="panel-piece-list">${rows}</div>`,
             "</div>",
@@ -743,7 +753,7 @@
         quantity: item.quantity || 1,
         canRotate: item.canRotate !== false,
         thickness: item.thickness || 6,
-        color: item.color || "Branco Supremo",
+        color: item.color || "Branco TX",
       });
     });
   }
@@ -863,14 +873,14 @@
   function resetProject() {
     state.result = null;
     clearRows();
-    addRow({ width: 1000, height: 1000, quantity: 1, canRotate: true, thickness: 6, color: "Branco Supremo" });
+    addRow({ width: 1000, height: 1000, quantity: 1, canRotate: true, thickness: 6, color: "Branco TX" });
     renderSummary();
     renderLayouts();
     applyOverlayState();
   }
 
   document.getElementById("add-row-btn").addEventListener("click", function () {
-    addRow({ width: 1000, height: 1000, quantity: 1, canRotate: true, thickness: 6, color: "Branco Supremo" });
+    addRow({ width: 1000, height: 1000, quantity: 1, canRotate: true, thickness: 6, color: "Branco TX" });
     scheduleCalculate();
   });
 
