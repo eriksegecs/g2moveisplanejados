@@ -20,6 +20,6 @@ No arquivo `landing/app.js`, altere:
 - custos e medidas padrao em `DEFAULTS`.
 
 ## Observacao
-- O envio de e-mail agora usa formulario HTTP via FormSubmit (`https://formsubmit.co/ajax/...`), sem backend.
-- No primeiro uso, voce precisa confirmar o endpoint por e-mail (verifique caixa de entrada/spam).
-- O WhatsApp envia apenas o numero do pedido no texto.
+- O envio de e-mail usa FormSubmit (`https://formsubmit.co/ajax/...`) e **nao funciona** abrindo o HTML local (`file://`).
+- Para funcionar no Android/desktop, publique em servidor (GitHub Pages) e acesse via `https://...`.
+- Se aberto localmente, o sistema cai para `mailto:` automaticamente.

@@ -11,10 +11,26 @@
     <header class="opcut-toolbar">
       <div class="opcut-brand">LAYOUT CUSTOMIZADO - g2moveisplanejados</div>
       <div class="opcut-actions">
-        <button class="btn btn-outline" id="request-order-btn" type="button">Solicitar Orcamento</button>
-        <button class="btn" id="calculate-btn" type="button">Calcular</button>
+        <button class="btn btn-share" id="share-link-btn" type="button">Compartilhar</button>
+        <button class="btn btn-highlight" id="request-order-btn" type="button">Solicitar Orcamento</button>
       </div>
     </header>
+
+    <div id="share-overlay" class="share-overlay" hidden></div>
+    <div id="share-box" class="share-box modal" hidden>
+      <div class="share-box-header">
+        <span>Link compartilhavel</span>
+        <button id="share-close-btn" class="btn btn-ghost" type="button">Fechar</button>
+      </div>
+      <div class="share-box-body">
+        <input id="share-link-input" type="text" readonly>
+        <div class="share-actions">
+          <button id="copy-link-btn" class="btn btn-outline" type="button">Copiar</button>
+          <button id="share-native-btn" class="btn" type="button">Compartilhar</button>
+        </div>
+        <div id="share-hint" class="share-hint muted">Copie o link ou compartilhe.</div>
+      </div>
+    </div>
 
     <section class="opcut-body">
       <aside class="opcut-sidebar">
@@ -28,7 +44,7 @@
             <span>Altura</span>
             <span>Qtd</span>
             <span>Esp</span>
-            <span>Cor</span>
+            <span class="col-center">Cor</span>
             <span>Rot</span>
             <span></span>
           </div>
@@ -50,7 +66,7 @@
           <div class="opcut-summary">
             <div><strong>Placas necessarias:</strong> <span id="sum-panels">0</span></div>
             <div><strong>Cortes estimados:</strong> <span id="sum-cuts">0</span></div>
-            <div><strong>Valor do orcamento:</strong> R$ <span id="sum-cost">0.00</span></div>
+            <div><strong>Valor estimado:</strong> R$ <span id="sum-cost">0.00</span></div>
             <div class="muted">Metodo: <span id="sum-method">custom-maxrects</span></div>
           </div>
 

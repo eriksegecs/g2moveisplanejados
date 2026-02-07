@@ -35,7 +35,7 @@
     { name: "Gris", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-griss.webp" },
     { name: "Jalapao", url: "https://arauco.com.br/wp-content/uploads/2024/03/Jalapao-185-x-275-3.jpg" },
     { name: "Kashmir", url: "https://arauco.com.br/wp-content/uploads/2024/03/Kashmir-185x275-1-scaled.jpg" },
-    { name: "Lavanda", url: "https://arauco.com.br/wp-content/uploads/2024/03/04-Sala-de-Estar-Madeiral-e-Lavanda-Final-scaled.jpg" },
+    { name: "Lavanda", url: "https://arauco.com.br/wp-content/uploads/2024/03/WhatsApp-Image-2024-03-08-at-23.11.17.jpeg" },
     { name: "Lord", url: "https://arauco.com.br/wp-content/uploads/2024/03/Lord-185x275-1-scaled.jpg" },
     { name: "Maragogi", url: "https://arauco.com.br/wp-content/uploads/2024/03/Maragogi-185-x-275-3.jpg" },
     { name: "Oceano", url: "https://arauco.com.br/wp-content/uploads/2024/01/oceano.webp" },
@@ -382,14 +382,37 @@
 
   function estimateQuote(items, settings) {
     const expanded = expandItems(items);
-    const packed = packItemsMaxRects(
-      expanded,
-      settings.panelWidth,
-      settings.panelHeight,
-      settings.cutWidth
-    );
-    const layouts = packed.layouts;
-    const placedCount = layouts.reduce((acc, l) => acc + l.items.length, 0);
+    const grouped = expanded.reduce((acc, item) => {
+      const key = item.color || "Branco Supremo";
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(item);
+      return acc;
+    }, {});
+
+    const layouts = [];
+    let placedCount = 0;
+    let unplacedTotal = 0;
+
+    Object.keys(grouped).forEach((colorName) => {
+      const packed = packItemsMaxRects(
+        grouped[colorName],
+        settings.panelWidth,
+        settings.panelHeight,
+        settings.cutWidth
+      );
+      packed.layouts.forEach((layout) => {
+        layouts.push({
+          width: layout.width,
+          height: layout.height,
+          items: layout.items,
+          color: colorName,
+          colorUrl: (findPaletteByName(colorName) || colorPalette[0]).url,
+        });
+      });
+      placedCount += packed.layouts.reduce((acc, l) => acc + l.items.length, 0);
+      unplacedTotal += packed.unplaced.length;
+    });
+
     const totalPanels = Math.max(1, layouts.length);
     const totalCuts = Math.max(1, placedCount * 2);
     const totalCost = totalPanels * settings.panelCost + totalCuts * settings.cutCost;
@@ -402,7 +425,7 @@
       raw: {
         requestedCount: expanded.length,
         placedCount: placedCount,
-        unplacedCount: packed.unplaced.length,
+        unplacedCount: unplacedTotal,
       },
     };
   }
@@ -438,6 +461,7 @@
     layoutEmptyEl.style.display = "none";
     layoutGridEl.innerHTML = result.layouts
       .map((layout, panelIndex) => {
+        const patternId = "panelPattern" + panelIndex;
         const itemsSvg = layout.items
           .map((item) => {
             const lf = labelFontSize(item);
@@ -457,9 +481,14 @@
         return [
           `<div class="layout-card" data-panel-index="${panelIndex}">`,
           `<div class="layout-title">Placa ${panelIndex + 1}</div>`,
-          `<div class="layout-meta">Medidas internas: ${Math.round(layout.width)} x ${Math.round(layout.height)} mm</div>`,
+          `<div class="layout-meta">Cor: ${esc(layout.color || "Branco Supremo")} | Medidas internas: ${Math.round(layout.width)} x ${Math.round(layout.height)} mm</div>`,
           `<svg class="layout-svg" viewBox="0 0 ${Math.round(layout.width)} ${Math.round(layout.height)}" preserveAspectRatio="xMidYMid meet">`,
-          `<rect class="layout-bg" x="0" y="0" width="${Math.round(layout.width)}" height="${Math.round(layout.height)}"></rect>`,
+          `<defs>`,
+          `<pattern id="${patternId}" patternUnits="userSpaceOnUse" width="180" height="180">`,
+          `<image href="${layout.colorUrl || ""}" x="0" y="0" width="180" height="180" preserveAspectRatio="xMidYMid slice"></image>`,
+          `</pattern>`,
+          `</defs>`,
+          `<rect class="layout-bg" x="0" y="0" width="${Math.round(layout.width)}" height="${Math.round(layout.height)}" fill="url(#${patternId})"></rect>`,
           itemsSvg,
           `</svg>`,
           `</div>`,
@@ -478,7 +507,7 @@
             '<div class="panel-list-group">',
             `<button class="panel-list-row" type="button" data-panel-index="${idx}">`,
             `<span class="panel-list-label">Placa ${idx + 1}</span>`,
-            `<span class="panel-list-size">${Math.round(layout.width)} x ${Math.round(layout.height)} mm</span>`,
+            `<span class="panel-list-size">${esc(layout.color || "Branco Supremo")} - ${Math.round(layout.width)} x ${Math.round(layout.height)} mm</span>`,
             "</button>",
             `<div class="panel-piece-list">${rows}</div>`,
             "</div>",
@@ -513,6 +542,18 @@
     });
     rows.forEach((row) => {
       row.classList.toggle("is-active", row.dataset.panelIndex === String(index));
+    });
+  }
+
+  function clearActivePanel() {
+    const cards = layoutGridEl.querySelectorAll(".layout-card");
+    const rows = panelListEl.querySelectorAll(".panel-list-row");
+    cards.forEach((card) => {
+      card.classList.remove("is-active");
+      card.classList.remove("is-muted");
+    });
+    rows.forEach((row) => {
+      row.classList.remove("is-active");
     });
   }
 
@@ -555,6 +596,9 @@
   }
 
   async function sendEmailByForm(orderCode, body) {
+    if (window.location.protocol === "file:") {
+      throw new Error("FormSubmit exige pagina servida por servidor web.");
+    }
     const payload = {
       _subject: "Pedido " + orderCode,
       _captcha: "false",
@@ -602,17 +646,136 @@
     requestBtn.disabled = true;
     try {
       await sendEmailByForm(orderCode, body);
-      const waUrl =
-        "https://wa.me/" +
-        DEFAULTS.whatsappNumber +
-        "?text=" +
-        encodeURIComponent("Solicitacao de pedido: " + orderCode);
-      window.open(waUrl, "_blank");
       alert("Pedido enviado por formulario. Codigo: " + orderCode);
     } catch (error) {
-      alert(error.message || "Nao foi possivel enviar o formulario.");
+      const subject = "Pedido " + orderCode;
+      const mailtoUrl =
+        "mailto:" +
+        DEFAULTS.emailTo +
+        "?subject=" +
+        encodeURIComponent(subject) +
+        "&body=" +
+        encodeURIComponent(body);
+      if (String(error.message || "").includes("FormSubmit exige")) {
+        window.location.href = mailtoUrl;
+        alert("Abrindo email. Para o FormSubmit funcionar, rode em servidor (GitHub Pages).");
+      } else {
+        alert(error.message || "Nao foi possivel enviar o formulario.");
+      }
     } finally {
       requestBtn.disabled = false;
+    }
+  }
+
+  function base64UrlEncode(text) {
+    const encoded = btoa(unescape(encodeURIComponent(text)));
+    return encoded.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+
+  function base64UrlDecode(text) {
+    const padded = text.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((text.length + 3) % 4);
+    return decodeURIComponent(escape(atob(padded)));
+  }
+
+  function buildSharePayload() {
+    const items = readItemsFromForm().map((item) => ({
+      width: item.width,
+      height: item.height,
+      quantity: item.quantity,
+      canRotate: item.canRotate,
+      thickness: item.thickness,
+      color: item.color,
+    }));
+    return { items: items };
+  }
+
+  function applySharePayload(payload) {
+    if (!payload || !Array.isArray(payload.items)) return;
+    clearRows();
+    payload.items.forEach((item) => {
+      addRow({
+        width: item.width || 1000,
+        height: item.height || 1000,
+        quantity: item.quantity || 1,
+        canRotate: item.canRotate !== false,
+        thickness: item.thickness || 6,
+        color: item.color || "Branco Supremo",
+      });
+    });
+  }
+
+  function generateShareLink() {
+    const payload = buildSharePayload();
+    if (!payload.items.length) {
+      alert("Adicione ao menos uma placa antes de gerar o link.");
+      return;
+    }
+    const encoded = base64UrlEncode(JSON.stringify(payload));
+    const url = new URL(window.location.href);
+    url.hash = "config=" + encoded;
+    const shareBox = document.getElementById("share-box");
+    const shareOverlay = document.getElementById("share-overlay");
+    const shareClose = document.getElementById("share-close-btn");
+    const shareInput = document.getElementById("share-link-input");
+    const copyBtn = document.getElementById("copy-link-btn");
+    const nativeBtn = document.getElementById("share-native-btn");
+    const hint = document.getElementById("share-hint");
+
+    shareInput.value = url.toString();
+    shareBox.hidden = false;
+    shareOverlay.hidden = false;
+
+    const tryCopy = () => {
+      if (!navigator.clipboard) return;
+      navigator.clipboard.writeText(shareInput.value).then(() => {
+        hint.textContent = "Link copiado para a area de transferencia.";
+      }).catch(() => {});
+    };
+
+    tryCopy();
+
+    copyBtn.onclick = () => {
+      tryCopy();
+    };
+
+    if (navigator.share) {
+      nativeBtn.hidden = false;
+      nativeBtn.onclick = async () => {
+        try {
+          await navigator.share({
+            title: "Configuracao de placas",
+            text: "Confira a configuracao das placas.",
+            url: shareInput.value,
+          });
+        } catch (err) {
+          // ignore cancel
+        }
+      };
+    } else {
+      nativeBtn.hidden = true;
+    }
+
+    const closePopup = () => {
+      shareBox.hidden = true;
+      shareOverlay.hidden = true;
+    };
+
+    shareOverlay.onclick = closePopup;
+    if (shareClose) {
+      shareClose.onclick = closePopup;
+    }
+  }
+
+  function loadFromHash() {
+    const hash = window.location.hash || "";
+    const match = hash.match(/config=([^&]+)/);
+    if (!match) return;
+    try {
+      const decoded = base64UrlDecode(match[1]);
+      const payload = JSON.parse(decoded);
+      applySharePayload(payload);
+    } catch (err) {
+      console.warn("Falha ao carregar configuracao do link", err);
     }
   }
 
@@ -641,6 +804,15 @@
     applyOverlayState();
   }
 
+  let calcTimer = null;
+  function scheduleCalculate() {
+    if (calcTimer) clearTimeout(calcTimer);
+    calcTimer = setTimeout(() => {
+      calcTimer = null;
+      calculate();
+    }, 250);
+  }
+
   function resetProject() {
     state.result = null;
     clearRows();
@@ -652,6 +824,7 @@
 
   document.getElementById("add-row-btn").addEventListener("click", function () {
     addRow({ width: 1000, height: 1000, quantity: 1, canRotate: true, thickness: 6, color: "Branco Supremo" });
+    scheduleCalculate();
   });
 
   itemsEl.addEventListener("click", function (event) {
@@ -676,6 +849,7 @@
     if (itemsEl.children.length > 1) {
       row.remove();
       updateLabels();
+      scheduleCalculate();
     } else {
       row.querySelectorAll("input").forEach((input) => {
         if (input.type === "checkbox") {
@@ -684,17 +858,31 @@
           input.value = "";
         }
       });
+      scheduleCalculate();
     }
   });
 
   itemsEl.addEventListener("change", function (event) {
     const input = event.target.closest('input[data-role="item-color"]');
+    if (input) {
+      const row = input.closest(".item-row");
+      if (!row) return;
+      syncColorPreview(row);
+      const picker = row.querySelector('[data-role="color-picker"]');
+      if (picker) picker.classList.remove("is-open");
+      scheduleCalculate();
+      return;
+    }
+    const other = event.target.closest('select[name="item_thickness"], .rotate-toggle');
+    if (other) {
+      scheduleCalculate();
+    }
+  });
+
+  itemsEl.addEventListener("input", function (event) {
+    const input = event.target.closest('input[name="item_width"], input[name="item_height"], input[name="item_qty"]');
     if (!input) return;
-    const row = input.closest(".item-row");
-    if (!row) return;
-    syncColorPreview(row);
-    const picker = row.querySelector('[data-role="color-picker"]');
-    if (picker) picker.classList.remove("is-open");
+    scheduleCalculate();
   });
 
   document.addEventListener("click", function (event) {
@@ -707,15 +895,28 @@
   panelListEl.addEventListener("click", function (event) {
     const row = event.target.closest(".panel-list-row");
     if (!row) return;
+    if (row.classList.contains("is-active")) {
+      clearActivePanel();
+      return;
+    }
     setActivePanel(row.dataset.panelIndex);
   });
 
   toggleLabelsEl.addEventListener("change", applyOverlayState);
   toggleDimensionsEl.addEventListener("change", applyOverlayState);
-  document.getElementById("calculate-btn").addEventListener("click", calculate);
+  const calcButton = document.getElementById("calculate-btn");
+  if (calcButton) {
+    calcButton.addEventListener("click", calculate);
+  }
   document.getElementById("request-order-btn").addEventListener("click", function () {
     requestOrder();
   });
+  document.getElementById("share-link-btn").addEventListener("click", generateShareLink);
 
-  resetProject();
+  loadFromHash();
+  if (!itemsEl.children.length) {
+    resetProject();
+  } else {
+    calculate();
+  }
 })();

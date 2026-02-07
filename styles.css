@@ -42,6 +42,19 @@ input {
   border: 1px solid var(--accent);
 }
 
+.btn-share {
+  background: var(--green);
+  color: #fff;
+  border: 1px solid var(--green);
+}
+
+.btn-highlight {
+  background: #1f7a5c;
+  color: #fff;
+  border: 1px solid #1f7a5c;
+  box-shadow: 0 10px 18px rgba(31, 122, 92, 0.25);
+}
+
 .btn-ghost {
   background: transparent;
   color: #6b4b35;
@@ -75,6 +88,58 @@ input {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.share-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 50;
+}
+
+.share-box {
+  padding: 14px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.share-box.modal {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 60;
+  width: min(540px, 90vw);
+}
+
+.share-box-header {
+  font-weight: bold;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.share-box-body {
+  display: grid;
+  gap: 8px;
+}
+
+.share-box input {
+  width: 100%;
+}
+
+.share-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.share-hint {
+  font-size: 0.85rem;
 }
 
 .opcut-body {
@@ -161,9 +226,17 @@ input {
 .item-table-header,
 .item-row {
   display: grid;
-  grid-template-columns: 0.35fr 1.1fr 1.1fr minmax(3ch, 0.7fr) 0.6fr 0.9fr 0.5fr 0.35fr;
-  gap: 10px;
+  grid-template-columns: 0.35fr 1.1fr 1.1fr minmax(3ch, 0.7fr) 0.45fr 0.7fr 0.38fr 0.35fr;
+  gap: 6px;
   align-items: center;
+}
+
+.item-table-header span {
+  line-height: 1;
+}
+
+.item-table-header .col-center {
+  text-align: center;
 }
 
 .item-table-header {
@@ -180,8 +253,8 @@ input {
 }
 
 .item-row input[name="item_qty"] {
-  min-width: 72px;
-  max-width: 84px;
+  min-width: 48px;
+  max-width: 56px;
   text-align: center;
 }
 
@@ -192,10 +265,20 @@ input {
   background: #fff;
 }
 
+.item-row select[name="item_thickness"] {
+  min-width: 64px;
+  max-width: 70px;
+}
+
 .color-picker {
   position: relative;
   display: inline-flex;
   align-items: center;
+  justify-self: center;
+}
+
+.color-toggle {
+  padding: 3px;
 }
 
 .color-toggle {
@@ -316,7 +399,6 @@ input {
 }
 
 .layout-bg {
-  fill: #f1ede5;
   stroke: rgba(0, 0, 0, 0.2);
   stroke-width: 2;
 }
