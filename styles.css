@@ -542,7 +542,6 @@ input {
 }
 
 .layout-item {
-  fill: transparent;
   stroke: rgba(80, 80, 80, 0.7);
   stroke-width: 2;
 }
