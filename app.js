@@ -672,7 +672,7 @@
 
     const form = document.createElement("form");
     form.method = "POST";
-    form.action = "https://formsubmit.co/?token=6db5f26a7b24c72bbc9ed8175c334d8c";
+    form.action = "https://formsubmit.co/ajax?token=6db5f26a7b24c72bbc9ed8175c334d8c";
     form.target = "_blank";
 
     const fields = {
