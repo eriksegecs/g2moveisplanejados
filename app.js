@@ -812,15 +812,24 @@
     });
   }
 
-  function generateShareLink() {
+  function updateUrlWithSharePayload() {
     const payload = buildSharePayload();
-    if (!payload.items.length) {
-      alert("Adicione ao menos uma placa antes de gerar o link.");
-      return;
-    }
+    if (!payload.items.length) return "";
     const encoded = base64UrlEncode(JSON.stringify(payload));
     const url = new URL(window.location.href);
     url.hash = "config=" + encoded;
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState(null, "", url.toString());
+    }
+    return url.toString();
+  }
+
+  function generateShareLink() {
+    const shareUrl = updateUrlWithSharePayload();
+    if (!shareUrl) {
+      alert("Adicione ao menos uma placa antes de gerar o link.");
+      return;
+    }
     const shareBox = document.getElementById("share-box");
     const shareOverlay = document.getElementById("share-overlay");
     const shareClose = document.getElementById("share-close-btn");
@@ -829,7 +838,7 @@
     const nativeBtn = document.getElementById("share-native-btn");
     const hint = document.getElementById("share-hint");
 
-    shareInput.value = url.toString();
+    shareInput.value = shareUrl;
     shareBox.hidden = false;
     shareOverlay.hidden = false;
 
@@ -1002,6 +1011,7 @@
     renderSummary();
     renderLayouts();
     applyOverlayState();
+    updateUrlWithSharePayload();
   }
 
   let calcTimer = null;
