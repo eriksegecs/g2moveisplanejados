@@ -511,7 +511,7 @@
             const cy = Math.round(item.y + item.height / 2);
             const tx = Math.round(item.x + df);
             return [
-              `<rect class="layout-item" x="${Math.round(item.x)}" y="${Math.round(item.y)}" width="${Math.round(item.width)}" height="${Math.round(item.height)}" rx="18" ry="18"></rect>`,
+              `<rect class="layout-item" x="${Math.round(item.x)}" y="${Math.round(item.y)}" width="${Math.round(item.width)}" height="${Math.round(item.height)}"></rect>`,
               `<text class="layout-label-text" x="${cx}" y="${cy}" style="font-size:${lf}px">${esc(item.label || "Item")}</text>`,
               `<text class="layout-dim-text" x="${cx}" y="${Math.round(item.y + df)}" style="font-size:${df}px">${Math.round(item.width)}</text>`,
               `<text class="layout-dim-text" x="${tx}" y="${cy}" transform="rotate(-90 ${tx} ${cy})" style="font-size:${df}px">${Math.round(item.height)}</text>`,
@@ -921,8 +921,6 @@
         rect.setAttribute("y", Math.round(item.y));
         rect.setAttribute("width", Math.round(item.width));
         rect.setAttribute("height", Math.round(item.height));
-        rect.setAttribute("rx", "18");
-        rect.setAttribute("ry", "18");
         rect.setAttribute("fill", "#fff");
         rect.setAttribute("stroke", "#000");
         rect.setAttribute("stroke-width", "2");
