@@ -122,8 +122,8 @@
     const groupName = "item_color_" + colorGroupId;
     row.innerHTML = [
       '<input type="text" name="item_label" class="item-label-input" maxlength="24" placeholder="ID">',
-      '<input type="number" name="item_width" min="1" max="9999" inputmode="numeric" required>',
-      '<input type="number" name="item_height" min="1" max="9999" inputmode="numeric" required>',
+      '<input type="text" name="item_width" minlength="1" maxlength="4" inputmode="numeric" pattern="[0-9]*" required>',
+      '<input type="text" name="item_height" minlength="1" maxlength="4" inputmode="numeric" pattern="[0-9]*" required>',
       '<input type="number" name="item_qty" min="1" value="1" required>',
       '<select name="item_thickness" class="item-select"><option value="6">6mm</option><option value="15">15mm</option><option value="18">18mm</option></select>',
       buildColorPalette(groupName, "Branco TX"),
