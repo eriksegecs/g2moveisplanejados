@@ -122,8 +122,8 @@
     const groupName = "item_color_" + colorGroupId;
     row.innerHTML = [
       '<span class="item-label"></span>',
-      '<input type="number" name="item_width" min="1" required>',
-      '<input type="number" name="item_height" min="1" required>',
+      '<input type="number" name="item_width" min="1" max="9999" inputmode="numeric" required>',
+      '<input type="number" name="item_height" min="1" max="9999" inputmode="numeric" required>',
       '<input type="number" name="item_qty" min="1" value="1" required>',
       '<select name="item_thickness" class="item-select"><option value="6">6mm</option><option value="15">15mm</option><option value="18">18mm</option></select>',
       buildColorPalette(groupName, "Branco TX"),
@@ -1091,6 +1091,12 @@
   itemsEl.addEventListener("input", function (event) {
     const input = event.target.closest('input[name="item_width"], input[name="item_height"], input[name="item_qty"]');
     if (!input) return;
+
+    if (input.name === "item_width" || input.name === "item_height") {
+      const digits = String(input.value || "").replace(/\D/g, "").slice(0, 4);
+      input.value = digits;
+    }
+
     scheduleCalculate();
   });
 
