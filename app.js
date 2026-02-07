@@ -19,6 +19,7 @@
       "18": 220,
     },
     whatsappNumber: "554197190158",
+    emailEndpoint: "https://formsubmit.co/ajax/?token=6db5f26a7b24c72bbc9ed8175c334d8c",
   };
 
   const state = {
@@ -668,6 +669,31 @@
     return lines.join("\n");
   }
 
+  async function sendEmailByForm(subject, body) {
+    if (window.location.protocol === "file:") {
+      throw new Error("FormSubmit exige pagina servida por servidor web.");
+    }
+    const payload = {
+      _subject: subject,
+      _captcha: "false",
+      _template: "table",
+      mensagem: body,
+    };
+
+    const response = await fetch(DEFAULTS.emailEndpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error("Falha ao enviar formulario.");
+    }
+  }
+
   async function requestOrder() {
     if (!state.result || !state.result.layouts.length) {
       alert("Calcule o layout antes de solicitar o pedido.");
@@ -721,13 +747,28 @@
     ].join("\n");
 
     const subject = name + " - " + orderCode;
-    const mailtoUrl =
-      "mailto:g2mplanejados@gmail.com" +
-      "?subject=" +
-      encodeURIComponent(subject) +
-      "&body=" +
-      encodeURIComponent(emailBody);
-    window.location.href = mailtoUrl;
+
+    const requestBtn = document.getElementById("request-order-btn");
+    requestBtn.disabled = true;
+    try {
+      await sendEmailByForm(subject, emailBody);
+      alert("Pedido enviado por formulario.");
+    } catch (error) {
+      const mailtoUrl =
+        "mailto:g2mplanejados@gmail.com" +
+        "?subject=" +
+        encodeURIComponent(subject) +
+        "&body=" +
+        encodeURIComponent(emailBody);
+      if (String(error.message || "").includes("FormSubmit exige")) {
+        window.location.href = mailtoUrl;
+        alert("Abrindo email. Para o FormSubmit funcionar, rode em servidor (GitHub Pages).");
+      } else {
+        alert(error.message || "Nao foi possivel enviar o formulario.");
+      }
+    } finally {
+      requestBtn.disabled = false;
+    }
   }
 
   function base64UrlEncode(text) {

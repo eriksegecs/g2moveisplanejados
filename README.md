@@ -20,4 +20,5 @@ No arquivo `landing/app.js`, altere:
 - custos e medidas padrao em `DEFAULTS`.
 
 ## Observacao
-- O botao "Solicitar Orcamento" abre o e-mail com o link da configuracao e o G-code no corpo.
+- O botao "Solicitar Orcamento" envia o e-mail via FormSubmit com o link da configuracao e o G-code no corpo.
+- Se aberto localmente (`file://`), o sistema cai para `mailto:` automaticamente.
