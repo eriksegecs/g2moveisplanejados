@@ -24,7 +24,7 @@
 
   const state = {
     result: null,
-    cutMode: "saw",
+    cutMode: "router",
   };
 
   const colorPalette = [
@@ -636,32 +636,28 @@
     return rows;
   }
 
-  function generateGcodeString() {
+  function generateGcodeForPanel(layout, panelIndex) {
     const lines = [];
     lines.push("G21 ; mm");
     lines.push("G90 ; abs");
     lines.push("G0 Z5");
     lines.push("M3 S12000");
-
-    state.result.layouts.forEach((layout, panelIndex) => {
-      lines.push("(Panel " + (panelIndex + 1) + " - " + (layout.color || "Sem cor") + ")");
-      layout.items.forEach((item) => {
-        const x = Math.round(item.x);
-        const y = Math.round(item.y);
-        const w = Math.round(item.width);
-        const h = Math.round(item.height);
-        const label = String(item.label || "Item");
-        lines.push("(Item " + label + ")");
-        lines.push("G0 X" + x + " Y" + y);
-        lines.push("G1 Z-3 F300");
-        lines.push("G1 X" + (x + w) + " Y" + y + " F1200");
-        lines.push("G1 X" + (x + w) + " Y" + (y + h));
-        lines.push("G1 X" + x + " Y" + (y + h));
-        lines.push("G1 X" + x + " Y" + y);
-        lines.push("G0 Z5");
-      });
+    lines.push("(Panel " + (panelIndex + 1) + " - " + (layout.color || "Sem cor") + ")");
+    layout.items.forEach((item) => {
+      const x = Math.round(item.x);
+      const y = Math.round(item.y);
+      const w = Math.round(item.width);
+      const h = Math.round(item.height);
+      const label = String(item.label || "Item");
+      lines.push("(Item " + label + ")");
+      lines.push("G0 X" + x + " Y" + y);
+      lines.push("G1 Z-3 F300");
+      lines.push("G1 X" + (x + w) + " Y" + y + " F1200");
+      lines.push("G1 X" + (x + w) + " Y" + (y + h));
+      lines.push("G1 X" + x + " Y" + (y + h));
+      lines.push("G1 X" + x + " Y" + y);
+      lines.push("G0 Z5");
     });
-
     lines.push("M5");
     lines.push("G0 Z5");
     lines.push("G0 X0 Y0");
@@ -718,7 +714,10 @@
     const url = new URL(window.location.href);
     url.hash = "config=" + encoded;
 
-    const gcode = generateGcodeString();
+    const gcodeBlocks = state.result.layouts.map((layout, idx) => {
+      const header = "GCODE - Painel " + (idx + 1) + " - " + (layout.color || "Sem cor");
+      return [header, generateGcodeForPanel(layout, idx)].join("\n");
+    });
     const cutLabel = state.cutMode === "router" ? "Router" : "Serra";
     const estimatedValue = Number(state.result.totalCost || 0).toFixed(2);
     const panelsList = state.result.layouts.map((layout, idx) => {
@@ -742,8 +741,8 @@
       "----- PAINEIS -----",
       panelsList,
       "",
-      "----- GCODE -----",
-      gcode,
+      "----- GCODE POR PAINEL -----",
+      gcodeBlocks.join("\n\n"),
     ].join("\n");
 
     const subject = name + " - " + orderCode;
@@ -870,6 +869,95 @@
     }
   }
 
+  function buildPrintPages() {
+    const printArea = document.getElementById("print-area");
+    if (!printArea) return;
+    printArea.innerHTML = "";
+
+    state.result.layouts.forEach((layout, panelIndex) => {
+      const page = document.createElement("div");
+      page.className = "print-page";
+
+      const title = document.createElement("div");
+      title.className = "print-title";
+      title.textContent =
+        "Painel " +
+        (panelIndex + 1) +
+        " - " +
+        (layout.color || "Sem cor") +
+        " | " +
+        Math.round(layout.width) +
+        " x " +
+        Math.round(layout.height) +
+        " mm";
+      page.appendChild(title);
+
+      const content = document.createElement("div");
+      content.className = "print-content";
+
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("class", "print-svg");
+      svg.setAttribute("viewBox", `0 0 ${Math.round(layout.width)} ${Math.round(layout.height)}`);
+      svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+      const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      bg.setAttribute("x", "0");
+      bg.setAttribute("y", "0");
+      bg.setAttribute("width", Math.round(layout.width));
+      bg.setAttribute("height", Math.round(layout.height));
+      bg.setAttribute("fill", "#fff");
+      bg.setAttribute("stroke", "#000");
+      bg.setAttribute("stroke-width", "2");
+      svg.appendChild(bg);
+
+      layout.items.forEach((item) => {
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", Math.round(item.x));
+        rect.setAttribute("y", Math.round(item.y));
+        rect.setAttribute("width", Math.round(item.width));
+        rect.setAttribute("height", Math.round(item.height));
+        rect.setAttribute("fill", "#fff");
+        rect.setAttribute("stroke", "#000");
+        rect.setAttribute("stroke-width", "2");
+        svg.appendChild(rect);
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", Math.round(item.x + item.width / 2));
+        text.setAttribute("y", Math.round(item.y + item.height / 2));
+        text.setAttribute("font-size", "40");
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("dominant-baseline", "middle");
+        text.textContent = item.label || "Item";
+        svg.appendChild(text);
+      });
+
+      content.appendChild(svg);
+
+      const legend = document.createElement("div");
+      legend.className = "print-legend";
+      layout.items.forEach((item) => {
+        const label = item.label || "Item";
+        const row = document.createElement("div");
+        row.className = "legend-item";
+        row.textContent = label + " - " + Math.round(item.width) + " x " + Math.round(item.height);
+        legend.appendChild(row);
+      });
+      content.appendChild(legend);
+      page.appendChild(content);
+
+      printArea.appendChild(page);
+    });
+  }
+
+  function printPanels() {
+    if (!state.result || !state.result.layouts.length) {
+      alert("Calcule o layout antes de imprimir.");
+      return;
+    }
+    buildPrintPages();
+    window.print();
+  }
+
   function loadFromHash() {
     const hash = window.location.hash || "";
     const match = hash.match(/config=([^&]+)/);
@@ -934,19 +1022,11 @@
     scheduleCalculate();
   });
 
-  const cutSawBtn = document.getElementById("cut-saw-btn");
   const cutRouterBtn = document.getElementById("cut-router-btn");
-  if (cutSawBtn && cutRouterBtn) {
-    cutSawBtn.addEventListener("click", function () {
-      state.cutMode = "saw";
-      cutSawBtn.classList.add("is-active");
-      cutRouterBtn.classList.remove("is-active");
-      scheduleCalculate();
-    });
+  if (cutRouterBtn) {
     cutRouterBtn.addEventListener("click", function () {
       state.cutMode = "router";
       cutRouterBtn.classList.add("is-active");
-      cutSawBtn.classList.remove("is-active");
       scheduleCalculate();
     });
   }
@@ -1036,6 +1116,7 @@
     requestOrder();
   });
   document.getElementById("share-link-btn").addEventListener("click", generateShareLink);
+  document.getElementById("print-panels-btn").addEventListener("click", printPanels);
 
   loadFromHash();
   if (!itemsEl.children.length) {
