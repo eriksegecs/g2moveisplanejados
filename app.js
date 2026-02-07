@@ -1162,10 +1162,13 @@
   itemsEl.addEventListener("change", function (event) {
     const input = event.target.closest('input[data-role="item-color"]');
     if (input) {
-      const row = input.closest(".item-row");
+      let picker = input.closest('[data-role="color-picker"]');
+      if (!picker && floatingPalette && floatingPalette.palette.contains(input)) {
+        picker = floatingPalette.picker;
+      }
+      const row = picker ? picker.closest(".item-row") : null;
       if (!row) return;
       syncColorPreview(row);
-      const picker = row.querySelector('[data-role="color-picker"]');
       if (picker) picker.classList.remove("is-open");
       closeFloatingPalette();
       scheduleCalculate();
