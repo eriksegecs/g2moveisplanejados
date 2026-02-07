@@ -13,6 +13,7 @@
       <div class="opcut-actions">
         <button class="btn btn-share" id="share-link-btn" type="button">Compartilhar</button>
         <button class="btn btn-highlight" id="request-order-btn" type="button">Solicitar Orcamento</button>
+        <button class="btn btn-outline" id="gcode-btn" type="button">Gerar G-code</button>
       </div>
     </header>
 
@@ -36,6 +37,16 @@
       <aside class="opcut-sidebar">
         <h2>Orcamento</h2>
         <p>Informe as dimensoes das placas em milimetros, quantidade e se pode rotacionar.</p>
+
+        <div class="cut-mode">
+          <button class="btn btn-outline is-active" id="cut-saw-btn" type="button">Corte na serra</button>
+          <button class="btn btn-outline" id="cut-router-btn" type="button">Corte na router</button>
+        </div>
+
+        <div class="lead-fields">
+          <label>Nome<input id="lead-name" type="text" placeholder="Seu nome"></label>
+          <label>Telefone<input id="lead-phone" type="tel" placeholder="(DDD) 99999-9999"></label>
+        </div>
 
         <div class="item-table">
           <div class="item-table-header">

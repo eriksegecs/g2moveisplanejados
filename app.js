@@ -2,17 +2,35 @@
   "use strict";
 
   const DEFAULTS = {
-    panelWidth: 2750,
-    panelHeight: 1850,
-    cutWidth: 14,
+    panelWidth: 1830,
+    panelHeight: 2700,
+    cutWidthSaw: 6,
+    cutWidthRouter: 14,
     panelCost: 350,
-    cutCost: 2,
+    cutCostSaw: 3.5,
+    routerRate: {
+      "6": 16,
+      "15": 30,
+      "18": 30,
+    },
+    routerMax: {
+      "6": 78,
+      "15": 220,
+      "18": 220,
+    },
     whatsappNumber: "5513982327841",
-    emailEndpoint: "https://formsubmit.co/ajax/?token=6e3fae5b424ed243b47347e8c06bed4e",
   };
 
   const state = {
     result: null,
+    cutMode: "saw",
+  };
+
+  const GCODE_DEFAULTS = {
+    safeZ: 5,
+    cutZ: -3,
+    feedXY: 1200,
+    feedZ: 300,
   };
 
   const colorPalette = [
@@ -413,8 +431,28 @@
     });
 
     const totalPanels = Math.max(1, layouts.length);
-    const totalCuts = Math.max(1, placedCount * 2);
-    const totalCost = totalPanels * settings.panelCost + totalCuts * settings.cutCost;
+    let totalCuts = Math.max(1, placedCount * 2);
+    let cutCostTotal = 0;
+
+    if (settings.cutMode === "router") {
+      totalCuts = Math.max(4, placedCount * 4);
+      cutCostTotal = 0;
+      layouts.forEach((layout) => {
+        layout.items.forEach((item) => {
+          const thickness = String(item.thickness || "6");
+          const rate = settings.routerRate[thickness] || settings.routerRate["6"];
+          const maxCost = settings.routerMax[thickness] || settings.routerMax["6"];
+          const areaM2 = (Number(item.width) * Number(item.height)) / 1_000_000;
+          const itemCost = Math.min(maxCost, areaM2 * rate);
+          cutCostTotal += itemCost;
+        });
+      });
+    } else {
+      totalCuts = Math.max(4, placedCount * 2);
+      cutCostTotal = totalCuts * settings.cutCostSaw;
+    }
+
+    const totalCost = totalPanels * settings.panelCost + cutCostTotal;
     return {
       totalPanels: totalPanels,
       totalCuts: totalCuts,
@@ -594,75 +632,83 @@
     return rows;
   }
 
-  async function sendEmailByForm(orderCode, body) {
-    if (window.location.protocol === "file:") {
-      throw new Error("FormSubmit exige pagina servida por servidor web.");
-    }
-    const payload = {
-      _subject: "Pedido " + orderCode,
-      _captcha: "false",
-      _template: "table",
-      pedido: orderCode,
-      mensagem: body,
-    };
-
-    const response = await fetch(DEFAULTS.emailEndpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      throw new Error("Falha ao enviar formulario de e-mail.");
-    }
-  }
-
   async function requestOrder() {
     if (!state.result || !state.result.layouts.length) {
       alert("Calcule o layout antes de solicitar o pedido.");
       return;
     }
 
-    const orderCode = buildOrderCode();
-    const rows = buildOrderRows(state.result.layouts);
-    const headerPipe = "codigo | descricao | largura | comprimento | rotaciona | observacao | espessura | materiaisSobra";
-    const headerTab = "codigo\tdescricao\tlargura\tcomprimento\trotaciona\tobservacao\tespessura\tmateriaisSobra";
-    const bodyLines = [
-      "Solicitacao de pedido: " + orderCode,
-      "",
-      headerPipe,
-      ...rows.map((r) => r.join(" | ")),
-      "",
-      headerTab,
-      ...rows.map((r) => r.join("\t")),
-    ];
-    const body = bodyLines.join("\n");
-
-    const requestBtn = document.getElementById("request-order-btn");
-    requestBtn.disabled = true;
-    try {
-      await sendEmailByForm(orderCode, body);
-      alert("Pedido enviado por formulario. Codigo: " + orderCode);
-    } catch (error) {
-      const subject = "Pedido " + orderCode;
-      const mailtoUrl =
-        "mailto:" +
-        "?subject=" +
-        encodeURIComponent(subject) +
-        "&body=" +
-        encodeURIComponent(body);
-      if (String(error.message || "").includes("FormSubmit exige")) {
-        window.location.href = mailtoUrl;
-        alert("Abrindo email. Para o FormSubmit funcionar, rode em servidor (GitHub Pages).");
-      } else {
-        alert(error.message || "Nao foi possivel enviar o formulario.");
-      }
-    } finally {
-      requestBtn.disabled = false;
+    const name = (document.getElementById("lead-name")?.value || "").trim();
+    const phone = (document.getElementById("lead-phone")?.value || "").trim();
+    if (!name || !phone) {
+      alert("Informe nome e telefone antes de solicitar o orcamento.");
+      return;
     }
+
+    const orderCode = buildOrderCode();
+
+    const payload = buildSharePayload();
+    const encoded = base64UrlEncode(JSON.stringify(payload));
+    const url = new URL(window.location.href);
+    url.hash = "config=" + encoded;
+
+    const message = [
+      "Solicitacao de orcamento",
+      "Pedido: " + orderCode,
+      "Nome: " + name,
+      "Telefone: " + phone,
+      "Link: " + url.toString(),
+    ].join("\n");
+
+    const waUrl = "https://wa.me/" + DEFAULTS.whatsappNumber + "?text=" + encodeURIComponent(message);
+    window.open(waUrl, "_blank");
+  }
+
+  function generateGcode() {
+    if (!state.result || !state.result.layouts.length) {
+      alert("Calcule o layout antes de gerar o G-code.");
+      return;
+    }
+
+    const lines = [];
+    lines.push("G21 ; mm");
+    lines.push("G90 ; abs");
+    lines.push("G0 Z" + GCODE_DEFAULTS.safeZ);
+    lines.push("M3 S12000");
+
+    state.result.layouts.forEach((layout, panelIndex) => {
+      lines.push("(Panel " + (panelIndex + 1) + " - " + (layout.color || "Sem cor") + ")");
+      layout.items.forEach((item) => {
+        const x = Math.round(item.x);
+        const y = Math.round(item.y);
+        const w = Math.round(item.width);
+        const h = Math.round(item.height);
+        const label = String(item.label || "Item");
+        lines.push("(Item " + label + ")");
+        lines.push("G0 X" + x + " Y" + y);
+        lines.push("G1 Z" + GCODE_DEFAULTS.cutZ + " F" + GCODE_DEFAULTS.feedZ);
+        lines.push("G1 X" + (x + w) + " Y" + y + " F" + GCODE_DEFAULTS.feedXY);
+        lines.push("G1 X" + (x + w) + " Y" + (y + h));
+        lines.push("G1 X" + x + " Y" + (y + h));
+        lines.push("G1 X" + x + " Y" + y);
+        lines.push("G0 Z" + GCODE_DEFAULTS.safeZ);
+      });
+    });
+
+    lines.push("M5");
+    lines.push("G0 Z" + GCODE_DEFAULTS.safeZ);
+    lines.push("G0 X0 Y0");
+    lines.push("M2");
+
+    const blob = new Blob([lines.join("\n")], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "layout_router.nc";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   }
 
   function base64UrlEncode(text) {
@@ -781,9 +827,12 @@
     const settings = {
       panelWidth: DEFAULTS.panelWidth,
       panelHeight: DEFAULTS.panelHeight,
-      cutWidth: DEFAULTS.cutWidth,
+      cutWidth: state.cutMode === "router" ? DEFAULTS.cutWidthRouter : DEFAULTS.cutWidthSaw,
       panelCost: DEFAULTS.panelCost,
-      cutCost: DEFAULTS.cutCost,
+      cutCostSaw: DEFAULTS.cutCostSaw,
+      routerRate: DEFAULTS.routerRate,
+      routerMax: DEFAULTS.routerMax,
+      cutMode: state.cutMode,
     };
     if (settings.panelWidth <= 0 || settings.panelHeight <= 0) {
       alert("Painel largura/altura devem ser maiores que zero.");
@@ -824,6 +873,23 @@
     addRow({ width: 1000, height: 1000, quantity: 1, canRotate: true, thickness: 6, color: "Branco Supremo" });
     scheduleCalculate();
   });
+
+  const cutSawBtn = document.getElementById("cut-saw-btn");
+  const cutRouterBtn = document.getElementById("cut-router-btn");
+  if (cutSawBtn && cutRouterBtn) {
+    cutSawBtn.addEventListener("click", function () {
+      state.cutMode = "saw";
+      cutSawBtn.classList.add("is-active");
+      cutRouterBtn.classList.remove("is-active");
+      scheduleCalculate();
+    });
+    cutRouterBtn.addEventListener("click", function () {
+      state.cutMode = "router";
+      cutRouterBtn.classList.add("is-active");
+      cutSawBtn.classList.remove("is-active");
+      scheduleCalculate();
+    });
+  }
 
   itemsEl.addEventListener("click", function (event) {
     const toggle = event.target.closest(".color-toggle");
@@ -910,6 +976,7 @@
     requestOrder();
   });
   document.getElementById("share-link-btn").addEventListener("click", generateShareLink);
+  document.getElementById("gcode-btn").addEventListener("click", generateGcode);
 
   loadFromHash();
   if (!itemsEl.children.length) {

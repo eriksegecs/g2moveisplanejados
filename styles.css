@@ -158,6 +158,31 @@ input {
   margin-bottom: 8px;
 }
 
+.lead-fields {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 12px;
+}
+
+.lead-fields label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.cut-mode {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 6px 0 12px;
+}
+
+.cut-mode .btn-outline.is-active {
+  background: var(--green);
+  color: #fff;
+  border-color: var(--green);
+}
+
 .opcut-workspace {
   padding: 24px;
   display: grid;
