@@ -18,19 +18,12 @@
       "15": 220,
       "18": 220,
     },
-    whatsappNumber: "5513982327841",
+    whatsappNumber: "554197190158",
   };
 
   const state = {
     result: null,
     cutMode: "saw",
-  };
-
-  const GCODE_DEFAULTS = {
-    safeZ: 5,
-    cutZ: -3,
-    feedXY: 1200,
-    feedZ: 300,
   };
 
   const colorPalette = [
@@ -642,6 +635,39 @@
     return rows;
   }
 
+  function generateGcodeString() {
+    const lines = [];
+    lines.push("G21 ; mm");
+    lines.push("G90 ; abs");
+    lines.push("G0 Z5");
+    lines.push("M3 S12000");
+
+    state.result.layouts.forEach((layout, panelIndex) => {
+      lines.push("(Panel " + (panelIndex + 1) + " - " + (layout.color || "Sem cor") + ")");
+      layout.items.forEach((item) => {
+        const x = Math.round(item.x);
+        const y = Math.round(item.y);
+        const w = Math.round(item.width);
+        const h = Math.round(item.height);
+        const label = String(item.label || "Item");
+        lines.push("(Item " + label + ")");
+        lines.push("G0 X" + x + " Y" + y);
+        lines.push("G1 Z-3 F300");
+        lines.push("G1 X" + (x + w) + " Y" + y + " F1200");
+        lines.push("G1 X" + (x + w) + " Y" + (y + h));
+        lines.push("G1 X" + x + " Y" + (y + h));
+        lines.push("G1 X" + x + " Y" + y);
+        lines.push("G0 Z5");
+      });
+    });
+
+    lines.push("M5");
+    lines.push("G0 Z5");
+    lines.push("G0 X0 Y0");
+    lines.push("M2");
+    return lines.join("\n");
+  }
+
   async function requestOrder() {
     if (!state.result || !state.result.layouts.length) {
       alert("Calcule o layout antes de solicitar o pedido.");
@@ -655,70 +681,53 @@
       return;
     }
 
-    const orderCode = buildOrderCode();
+    if (!state.result || !state.result.layouts.length) {
+      alert("Calcule o layout antes de solicitar o pedido.");
+      return;
+    }
 
+    const orderCode = buildOrderCode();
     const payload = buildSharePayload();
     const encoded = base64UrlEncode(JSON.stringify(payload));
     const url = new URL(window.location.href);
     url.hash = "config=" + encoded;
 
-    const message = [
+    const gcode = generateGcodeString();
+    const cutLabel = state.cutMode === "router" ? "Router" : "Serra";
+    const estimatedValue = Number(state.result.totalCost || 0).toFixed(2);
+    const panelsList = state.result.layouts.map((layout, idx) => {
+      const panelTitle = "Painel " + (idx + 1) + " - " + (layout.color || "Sem cor");
+      const size = Math.round(layout.width) + " x " + Math.round(layout.height) + " mm";
+      const items = layout.items
+        .map((item) => "  - " + (item.label || "Item") + " (" + Math.round(item.width) + " x " + Math.round(item.height) + ")")
+        .join("\n");
+      return [panelTitle, "  Medidas: " + size, items].join("\n");
+    }).join("\n\n");
+
+    const emailBody = [
       "Solicitacao de orcamento",
       "Pedido: " + orderCode,
       "Nome: " + name,
       "Telefone: " + phone,
       "Link: " + url.toString(),
+      "Corte: " + cutLabel,
+      "Valor estimado: R$ " + estimatedValue,
+      "",
+      "----- PAINEIS -----",
+      panelsList,
+      "",
+      "----- GCODE -----",
+      gcode,
     ].join("\n");
 
-    const waUrl = "https://wa.me/" + DEFAULTS.whatsappNumber + "?text=" + encodeURIComponent(message);
-    window.open(waUrl, "_blank");
-  }
-
-  function generateGcode() {
-    if (!state.result || !state.result.layouts.length) {
-      alert("Calcule o layout antes de gerar o G-code.");
-      return;
-    }
-
-    const lines = [];
-    lines.push("G21 ; mm");
-    lines.push("G90 ; abs");
-    lines.push("G0 Z" + GCODE_DEFAULTS.safeZ);
-    lines.push("M3 S12000");
-
-    state.result.layouts.forEach((layout, panelIndex) => {
-      lines.push("(Panel " + (panelIndex + 1) + " - " + (layout.color || "Sem cor") + ")");
-      layout.items.forEach((item) => {
-        const x = Math.round(item.x);
-        const y = Math.round(item.y);
-        const w = Math.round(item.width);
-        const h = Math.round(item.height);
-        const label = String(item.label || "Item");
-        lines.push("(Item " + label + ")");
-        lines.push("G0 X" + x + " Y" + y);
-        lines.push("G1 Z" + GCODE_DEFAULTS.cutZ + " F" + GCODE_DEFAULTS.feedZ);
-        lines.push("G1 X" + (x + w) + " Y" + y + " F" + GCODE_DEFAULTS.feedXY);
-        lines.push("G1 X" + (x + w) + " Y" + (y + h));
-        lines.push("G1 X" + x + " Y" + (y + h));
-        lines.push("G1 X" + x + " Y" + y);
-        lines.push("G0 Z" + GCODE_DEFAULTS.safeZ);
-      });
-    });
-
-    lines.push("M5");
-    lines.push("G0 Z" + GCODE_DEFAULTS.safeZ);
-    lines.push("G0 X0 Y0");
-    lines.push("M2");
-
-    const blob = new Blob([lines.join("\n")], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "layout_router.nc";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    const subject = name + " - " + orderCode;
+    const mailtoUrl =
+      "mailto:g2mplanejados@gmail.com" +
+      "?subject=" +
+      encodeURIComponent(subject) +
+      "&body=" +
+      encodeURIComponent(emailBody);
+    window.location.href = mailtoUrl;
   }
 
   function base64UrlEncode(text) {
@@ -986,7 +995,6 @@
     requestOrder();
   });
   document.getElementById("share-link-btn").addEventListener("click", generateShareLink);
-  document.getElementById("gcode-btn").addEventListener("click", generateGcode);
 
   loadFromHash();
   if (!itemsEl.children.length) {

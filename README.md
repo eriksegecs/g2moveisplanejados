@@ -20,4 +20,4 @@ No arquivo `landing/app.js`, altere:
 - custos e medidas padrao em `DEFAULTS`.
 
 ## Observacao
-- O botao "Solicitar Orcamento" agora envia mensagem via WhatsApp com o link da configuracao.
+- O botao "Solicitar Orcamento" abre o e-mail com o link da configuracao e o G-code no corpo.
