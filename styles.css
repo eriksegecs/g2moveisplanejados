@@ -69,7 +69,7 @@ input {
   background: #fff;
   border-radius: 18px;
   border: 1px solid rgba(0, 0, 0, 0.08);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .opcut-toolbar {
@@ -316,6 +316,7 @@ input {
 .item-table {
   display: grid;
   gap: 8px;
+  overflow: visible;
 }
 
 .item-table-header,
@@ -665,7 +666,10 @@ input {
 
   .item-table {
     overflow-x: auto;
+    overflow-y: visible;
     padding-bottom: 4px;
+    position: relative;
+    z-index: 1;
   }
 
   .item-table-header,
