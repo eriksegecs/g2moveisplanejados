@@ -627,24 +627,41 @@ input {
     max-height: none;
   }
 
+  .item-table {
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
   .item-table-header,
   .item-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 30px 76px 76px 50px 58px 44px 34px 30px;
+    min-width: 430px;
   }
 
   .item-row input[name="item_width"],
   .item-row input[name="item_height"] {
-    max-width: 88px;
-    padding: 8px 10px;
-    font-size: 0.9rem;
+    width: 76px;
+    min-width: 76px;
+    max-width: 76px;
+    padding: 6px 8px;
+    font-size: 0.85rem;
   }
 
-  .item-table-header span:nth-child(3),
-  .item-table-header span:nth-child(4),
-  .item-table-header span:nth-child(5),
-  .item-table-header span:nth-child(6),
-  .item-table-header span:nth-child(7),
-  .item-table-header span:nth-child(8) {
-    display: none;
+  .item-row input[name="item_qty"] {
+    min-width: 50px;
+    max-width: 50px;
+    padding: 6px 4px;
+  }
+
+  .item-row select[name="item_thickness"] {
+    min-width: 58px;
+    max-width: 58px;
+    padding: 6px 4px;
+    font-size: 0.8rem;
+  }
+
+  .swatch {
+    width: 18px;
+    height: 18px;
   }
 }
