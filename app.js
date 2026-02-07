@@ -669,25 +669,30 @@
     if (window.location.protocol === "file:") {
       throw new Error("FormSubmit exige pagina servida por servidor web.");
     }
-    const payload = {
+
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "https://formsubmit.co/?token=6db5f26a7b24c72bbc9ed8175c334d8c";
+    form.target = "_blank";
+
+    const fields = {
       _subject: subject,
       _captcha: "false",
       _template: "table",
       mensagem: body,
     };
 
-    const response = await fetch(DEFAULTS.emailEndpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify(payload),
+    Object.keys(fields).forEach((key) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = fields[key];
+      form.appendChild(input);
     });
 
-    if (!response.ok) {
-      throw new Error("Falha ao enviar formulario.");
-    }
+    document.body.appendChild(form);
+    form.submit();
+    form.remove();
   }
 
   async function requestOrder() {

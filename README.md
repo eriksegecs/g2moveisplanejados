@@ -22,3 +22,4 @@ No arquivo `landing/app.js`, altere:
 ## Observacao
 - O botao "Solicitar Orcamento" envia o e-mail via FormSubmit com o link da configuracao e o G-code no corpo.
 - Se aberto localmente (`file://`), o sistema cai para `mailto:` automaticamente.
+- Em GitHub Pages, o envio e feito via `POST` para o FormSubmit (abre em nova aba).

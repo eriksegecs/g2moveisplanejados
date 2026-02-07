@@ -272,8 +272,8 @@ input {
   gap: 12px;
   position: sticky;
   top: 12px;
-  max-height: calc(100vh - 80px);
-  overflow: auto;
+  max-height: none;
+  overflow: visible;
 }
 
 .opcut-summary {
@@ -536,8 +536,8 @@ input {
 }
 
 .fixed-panel-list {
-  max-height: 420px;
-  overflow: auto;
+  max-height: none;
+  overflow: visible;
 }
 
 .panel-list-title {
