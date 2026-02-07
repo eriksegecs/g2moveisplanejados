@@ -121,7 +121,7 @@
     colorGroupId += 1;
     const groupName = "item_color_" + colorGroupId;
     row.innerHTML = [
-      '<span class="item-label"></span>',
+      '<input type="text" name="item_label" class="item-label-input" maxlength="24" placeholder="ID">',
       '<input type="number" name="item_width" min="1" max="9999" inputmode="numeric" required>',
       '<input type="number" name="item_height" min="1" max="9999" inputmode="numeric" required>',
       '<input type="number" name="item_qty" min="1" value="1" required>',
@@ -135,9 +135,10 @@
 
   function updateLabels() {
     Array.from(itemsEl.children).forEach((row, idx) => {
-      const label = row.querySelector(".item-label");
-      if (label) {
-        label.textContent = labelForIndex(idx);
+      const labelInput = row.querySelector('input[name="item_label"]');
+      if (!labelInput) return;
+      if (!String(labelInput.value || "").trim()) {
+        labelInput.value = labelForIndex(idx);
       }
     });
   }
@@ -145,6 +146,7 @@
   function addRow(values) {
     const row = rowTemplate();
     if (values) {
+      row.querySelector('input[name="item_label"]').value = values.label || "";
       row.querySelector('input[name="item_width"]').value = values.width;
       row.querySelector('input[name="item_height"]').value = values.height;
       row.querySelector('input[name="item_qty"]').value = values.quantity;
@@ -172,6 +174,8 @@
     const rows = Array.from(itemsEl.querySelectorAll(".item-row"));
     const items = [];
     rows.forEach((row, idx) => {
+      const labelInput = row.querySelector('input[name="item_label"]');
+      const customLabel = String((labelInput && labelInput.value) || "").trim();
       const width = Number(row.querySelector('input[name="item_width"]').value || 0);
       const height = Number(row.querySelector('input[name="item_height"]').value || 0);
       const quantity = Number(row.querySelector('input[name="item_qty"]').value || 0);
@@ -181,7 +185,7 @@
       const color = colorInput ? colorInput.value : "White";
       if (width > 0 && height > 0 && quantity > 0) {
         items.push({
-          label: labelForIndex(idx),
+          label: customLabel || labelForIndex(idx),
           width: width,
           height: height,
           quantity: quantity,
@@ -787,6 +791,7 @@
 
   function buildSharePayload() {
     const items = readItemsFromForm().map((item) => ({
+      label: item.label,
       width: item.width,
       height: item.height,
       quantity: item.quantity,
@@ -802,6 +807,7 @@
     clearRows();
     payload.items.forEach((item) => {
       addRow({
+        label: item.label,
         width: item.width || 1000,
         height: item.height || 1000,
         quantity: item.quantity || 1,
@@ -1099,7 +1105,7 @@
   });
 
   itemsEl.addEventListener("input", function (event) {
-    const input = event.target.closest('input[name="item_width"], input[name="item_height"], input[name="item_qty"]');
+    const input = event.target.closest('input[name="item_label"], input[name="item_width"], input[name="item_height"], input[name="item_qty"]');
     if (!input) return;
 
     if (input.name === "item_width" || input.name === "item_height") {
