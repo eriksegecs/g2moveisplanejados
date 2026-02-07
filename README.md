@@ -20,6 +20,6 @@ No arquivo `landing/app.js`, altere:
 - custos e medidas padrao em `DEFAULTS`.
 
 ## Observacao
-- O envio de e-mail usa FormSubmit (`https://formsubmit.co/ajax/...`) e **nao funciona** abrindo o HTML local (`file://`).
+- O envio de e-mail usa FormSubmit com token (`https://formsubmit.co/ajax/?token=...`) e **nao funciona** abrindo o HTML local (`file://`).
 - Para funcionar no Android/desktop, publique em servidor (GitHub Pages) e acesse via `https://...`.
-- Se aberto localmente, o sistema cai para `mailto:` automaticamente.
+- Se aberto localmente, o sistema cai para `mailto:` automaticamente (sem destinatario predefinido).

@@ -8,8 +8,7 @@
     panelCost: 350,
     cutCost: 2,
     whatsappNumber: "5513982327841",
-    emailTo: "eriksegecs@yahoo.com.br",
-    emailEndpoint: "https://formsubmit.co/ajax/eriksegecs@yahoo.com.br",
+    emailEndpoint: "https://formsubmit.co/ajax/?token=6e3fae5b424ed243b47347e8c06bed4e",
   };
 
   const state = {
@@ -651,7 +650,6 @@
       const subject = "Pedido " + orderCode;
       const mailtoUrl =
         "mailto:" +
-        DEFAULTS.emailTo +
         "?subject=" +
         encodeURIComponent(subject) +
         "&body=" +
