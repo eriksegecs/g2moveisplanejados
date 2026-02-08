@@ -25,35 +25,51 @@
   const state = {
     result: null,
     cutMode: "router",
+    selectedBrand: "arauco",
   };
 
-  const colorPalette = [
-    { name: "Azul Sereno", url: "https://arauco.com.br/wp-content/uploads/2024/03/AZUL-SERENO-185x275-1.jpg" },
-    { name: "Beige", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-beige-arauco.webp" },
-    { name: "Beton", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-beton-arauco.webp" },
-    { name: "Branco TX", url: "https://arauco.com.br/wp-content/uploads/2024/03/Branco-Supremo-_Chess-185x275-1-scaled.jpg" },
-    { name: "Cacao", url: "https://arauco.com.br/wp-content/uploads/2024/03/Cacao-Chess-185x275-1-scaled.jpg" },
-    { name: "Cafelatte", url: "https://arauco.com.br/wp-content/uploads/2024/03/produto-mdf-cafelatte-arauco.webp" },
-    { name: "Canela", url: "https://arauco.com.br/wp-content/uploads/2024/03/Canela-185x275-1-scaled.jpg" },
-    { name: "Cinza Cristal", url: "https://arauco.com.br/wp-content/uploads/2024/03/Cinza-Cristal-_Chess-185x275-1-scaled.jpg" },
-    { name: "Cinza Puro", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-cinza-puro.webp" },
-    { name: "Connect", url: "https://arauco.com.br/wp-content/uploads/2024/03/Connect-185x275-1-scaled.jpg" },
-    { name: "Cristalina", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-cristalina-arauco.webp" },
-    { name: "Damasco", url: "https://arauco.com.br/wp-content/uploads/2024/03/Dasmasco-185-x-275-scaled.jpg" },
-    { name: "Ebano", url: "https://arauco.com.br/wp-content/uploads/2024/03/Ebano-Chess-185x275-1-scaled.jpg" },
-    { name: "Frape", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-frape-arauco.webp" },
-    { name: "Grafito", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-grafito-arauco.webp" },
-    { name: "Gris", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-griss.webp" },
-    { name: "Jalapao", url: "https://arauco.com.br/wp-content/uploads/2024/03/Jalapao-185-x-275-3.jpg" },
-    { name: "Kashmir", url: "https://arauco.com.br/wp-content/uploads/2024/03/Kashmir-185x275-1-scaled.jpg" },
-    { name: "Lavanda", url: "https://arauco.com.br/wp-content/uploads/2024/03/WhatsApp-Image-2024-03-08-at-23.11.17.jpeg" },
-    { name: "Lord", url: "https://arauco.com.br/wp-content/uploads/2024/03/Lord-185x275-1-scaled.jpg" },
-    { name: "Maragogi", url: "https://arauco.com.br/wp-content/uploads/2024/03/Maragogi-185-x-275-3.jpg" },
-    { name: "Oceano", url: "https://arauco.com.br/wp-content/uploads/2024/01/oceano.webp" },
-    { name: "Sal Rosa", url: "https://arauco.com.br/wp-content/uploads/2024/03/Sal-Rosa-185x275-1-scaled.jpg" },
-    { name: "Salvia", url: "https://arauco.com.br/wp-content/uploads/2024/03/SALVIA-185x275-1-scaled.jpg" },
-    { name: "Verde Jade", url: "https://arauco.com.br/wp-content/uploads/2024/03/Verde-Jade-183x275_menor-scaled.jpg" },
+  const COLOR_CATALOG_CSV_URL = "";
+  const BRANDS = [
+    { key: "arauco", label: "Arauco" },
+    { key: "duratex", label: "Duratex" },
+    { key: "guararapes", label: "Guararapes" },
+    { key: "berneck", label: "Berneck" },
   ];
+
+  const fallbackCatalog = {
+    arauco: [
+      { name: "Azul Sereno", url: "https://arauco.com.br/wp-content/uploads/2024/03/AZUL-SERENO-185x275-1.jpg", panelPrice: 400 },
+      { name: "Beige", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-beige-arauco.webp", panelPrice: 400 },
+      { name: "Beton", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-beton-arauco.webp", panelPrice: 400 },
+      { name: "Branco TX", url: "https://arauco.com.br/wp-content/uploads/2024/03/Branco-Supremo-_Chess-185x275-1-scaled.jpg", panelPrice: 260 },
+      { name: "Cacao", url: "https://arauco.com.br/wp-content/uploads/2024/03/Cacao-Chess-185x275-1-scaled.jpg", panelPrice: 400 },
+      { name: "Cafelatte", url: "https://arauco.com.br/wp-content/uploads/2024/03/produto-mdf-cafelatte-arauco.webp", panelPrice: 400 },
+      { name: "Canela", url: "https://arauco.com.br/wp-content/uploads/2024/03/Canela-185x275-1-scaled.jpg", panelPrice: 400 },
+      { name: "Cinza Cristal", url: "https://arauco.com.br/wp-content/uploads/2024/03/Cinza-Cristal-_Chess-185x275-1-scaled.jpg", panelPrice: 400 },
+      { name: "Cinza Puro", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-cinza-puro.webp", panelPrice: 400 },
+      { name: "Connect", url: "https://arauco.com.br/wp-content/uploads/2024/03/Connect-185x275-1-scaled.jpg", panelPrice: 400 },
+      { name: "Cristalina", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-cristalina-arauco.webp", panelPrice: 400 },
+      { name: "Damasco", url: "https://arauco.com.br/wp-content/uploads/2024/03/Dasmasco-185-x-275-scaled.jpg", panelPrice: 400 },
+      { name: "Ebano", url: "https://arauco.com.br/wp-content/uploads/2024/03/Ebano-Chess-185x275-1-scaled.jpg", panelPrice: 400 },
+      { name: "Frape", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-frape-arauco.webp", panelPrice: 400 },
+      { name: "Grafito", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-grafito-arauco.webp", panelPrice: 400 },
+      { name: "Gris", url: "https://arauco.com.br/wp-content/uploads/2024/03/mdf-griss.webp", panelPrice: 400 },
+      { name: "Jalapao", url: "https://arauco.com.br/wp-content/uploads/2024/03/Jalapao-185-x-275-3.jpg", panelPrice: 400 },
+      { name: "Kashmir", url: "https://arauco.com.br/wp-content/uploads/2024/03/Kashmir-185x275-1-scaled.jpg", panelPrice: 400 },
+      { name: "Lavanda", url: "https://arauco.com.br/wp-content/uploads/2024/03/WhatsApp-Image-2024-03-08-at-23.11.17.jpeg", panelPrice: 400 },
+      { name: "Lord", url: "https://arauco.com.br/wp-content/uploads/2024/03/Lord-185x275-1-scaled.jpg", panelPrice: 400 },
+      { name: "Maragogi", url: "https://arauco.com.br/wp-content/uploads/2024/03/Maragogi-185-x-275-3.jpg", panelPrice: 400 },
+      { name: "Oceano", url: "https://arauco.com.br/wp-content/uploads/2024/01/oceano.webp", panelPrice: 400 },
+      { name: "Sal Rosa", url: "https://arauco.com.br/wp-content/uploads/2024/03/Sal-Rosa-185x275-1-scaled.jpg", panelPrice: 400 },
+      { name: "Salvia", url: "https://arauco.com.br/wp-content/uploads/2024/03/SALVIA-185x275-1-scaled.jpg", panelPrice: 400 },
+      { name: "Verde Jade", url: "https://arauco.com.br/wp-content/uploads/2024/03/Verde-Jade-183x275_menor-scaled.jpg", panelPrice: 400 }
+    ],
+    duratex: [],
+    guararapes: [],
+    berneck: [],
+  };
+
+  let catalogByBrand = JSON.parse(JSON.stringify(fallbackCatalog));
 
   const itemsEl = document.getElementById("items");
   const layoutGridEl = document.getElementById("layout-grid");
@@ -67,6 +83,7 @@
 
   const toggleLabelsEl = document.getElementById("toggle-labels");
   const toggleDimensionsEl = document.getElementById("toggle-dimensions");
+  const brandSelectEl = document.getElementById("brand-select");
 
   function labelForIndex(index) {
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -82,16 +99,100 @@
 
   let colorGroupId = 0;
 
+  function normalizeBrand(value) {
+    const normalized = String(value || "").trim().toLowerCase();
+    return BRANDS.some((b) => b.key === normalized) ? normalized : "arauco";
+  }
+
+  function getCurrentPalette() {
+    const brand = normalizeBrand(state.selectedBrand);
+    const list = catalogByBrand[brand] || [];
+    if (list.length) return list;
+    return catalogByBrand.arauco || [];
+  }
+
+  function getColorByName(name, brand) {
+    const selectedBrand = normalizeBrand(brand || state.selectedBrand);
+    const list = catalogByBrand[selectedBrand] || [];
+    return list.find((color) => color.name === name) || null;
+  }
+
+  function parseCsvLine(line) {
+    const output = [];
+    let cur = "";
+    let quoted = false;
+    for (let i = 0; i < line.length; i += 1) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (quoted && line[i + 1] === '"') {
+          cur += '"';
+          i += 1;
+        } else {
+          quoted = !quoted;
+        }
+      } else if (ch === "," && !quoted) {
+        output.push(cur.trim());
+        cur = "";
+      } else {
+        cur += ch;
+      }
+    }
+    output.push(cur.trim());
+    return output;
+  }
+
+  async function loadCatalogFromSheet() {
+    if (!COLOR_CATALOG_CSV_URL) return;
+    const response = await fetch(COLOR_CATALOG_CSV_URL, { cache: "no-store" });
+    if (!response.ok) throw new Error("Falha ao carregar planilha de cores");
+    const csvText = await response.text();
+    const lines = csvText.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    if (lines.length < 2) return;
+
+    const headers = parseCsvLine(lines[0]).map((h) => h.toLowerCase());
+    const idxBrand = headers.findIndex((h) => ["marca", "brand"].includes(h));
+    const idxName = headers.findIndex((h) => ["nome_cor", "cor", "color_name", "nome"].includes(h));
+    const idxPrice = headers.findIndex((h) => ["preco", "preco_painel", "price", "panel_price"].includes(h));
+    const idxImage = headers.findIndex((h) => ["imagem", "image", "image_url", "url_imagem"].includes(h));
+    if (idxBrand < 0 || idxName < 0 || idxPrice < 0 || idxImage < 0) return;
+
+    const nextCatalog = { arauco: [], duratex: [], guararapes: [], berneck: [] };
+    for (let i = 1; i < lines.length; i += 1) {
+      const cols = parseCsvLine(lines[i]);
+      const brand = normalizeBrand(cols[idxBrand]);
+      const name = String(cols[idxName] || "").trim();
+      const imageUrl = String(cols[idxImage] || "").trim();
+      const price = Number(String(cols[idxPrice] || "0").replace(".", "").replace(",", "."));
+      if (!name || !imageUrl || !Number.isFinite(price) || price <= 0) continue;
+      nextCatalog[brand].push({ name: name, url: imageUrl, panelPrice: price });
+    }
+
+    if (Object.values(nextCatalog).some((list) => list.length)) {
+      catalogByBrand = nextCatalog;
+    }
+  }
+
+  function populateBrandSelect() {
+    if (!brandSelectEl) return;
+    brandSelectEl.innerHTML = BRANDS.map((brand) => `<option value="${brand.key}">${brand.label}</option>`).join("");
+    brandSelectEl.value = normalizeBrand(state.selectedBrand);
+  }
+
   function buildColorPalette(groupName, defaultColor) {
+    const palette = getCurrentPalette();
+    const selected = palette.some((color) => color.name === defaultColor)
+      ? defaultColor
+      : (palette[0] ? palette[0].name : "Branco TX");
+
     return (
       '<div class="color-picker" data-role="color-picker">' +
       '<button type="button" class="color-toggle" aria-label="Selecionar cor">' +
       '<span class="swatch swatch-selected" data-role="color-preview"></span>' +
       "</button>" +
       '<div class="color-palette" role="radiogroup" aria-label="Cor">' +
-      colorPalette
+      palette
         .map((color) => {
-          const checked = color.name === defaultColor ? " checked" : "";
+          const checked = color.name === selected ? " checked" : "";
           return (
             '<label class="color-swatch" title="' +
             color.name +
@@ -166,6 +267,25 @@
     updateLabels();
   }
 
+  function rebuildRowColorPalette(row) {
+    colorGroupId += 1;
+    const groupName = "item_color_" + colorGroupId;
+    const picker = row.querySelector('[data-role="color-picker"]');
+    if (!picker) return;
+    const current = row.querySelector('input[data-role="item-color"]:checked')?.value;
+    const replacement = document.createElement("div");
+    replacement.innerHTML = buildColorPalette(groupName, current || "Branco TX");
+    const nextPicker = replacement.firstChild;
+    picker.replaceWith(nextPicker);
+    syncColorPreview(row);
+  }
+
+  function refreshAllRowPalettes() {
+    Array.from(itemsEl.querySelectorAll(".item-row")).forEach((row) => {
+      rebuildRowColorPalette(row);
+    });
+  }
+
   function clearRows() {
     itemsEl.innerHTML = "";
   }
@@ -182,7 +302,7 @@
       const canRotate = row.querySelector(".rotate-toggle").checked;
       const thickness = row.querySelector('select[name="item_thickness"]').value;
       const colorInput = row.querySelector('input[data-role="item-color"]:checked');
-      const color = colorInput ? colorInput.value : "White";
+      const color = colorInput ? colorInput.value : "Branco TX";
       if (width > 0 && height > 0 && quantity > 0) {
         items.push({
           label: customLabel || labelForIndex(idx),
@@ -192,14 +312,15 @@
           canRotate: canRotate,
           thickness: thickness,
           color: color,
+          brand: state.selectedBrand,
         });
       }
     });
     return items;
   }
 
-  function findPaletteByName(name) {
-    return colorPalette.find((color) => color.name === name) || colorPalette[0];
+  function findPaletteByName(name, brand) {
+    return getColorByName(name, brand) || getCurrentPalette()[0] || { name: "Sem cor", url: "" };
   }
 
   function syncColorPreview(row, selectedColorName) {
@@ -207,7 +328,7 @@
     const preview = row.querySelector('[data-role="color-preview"]');
     if (!preview) return;
     const colorName = selectedColorName || (colorInput ? colorInput.value : "Branco TX");
-    const color = findPaletteByName(colorName);
+    const color = findPaletteByName(colorName, state.selectedBrand);
     preview.style.backgroundImage = "url(" + color.url + ")";
   }
 
@@ -222,6 +343,7 @@
           label: item.label + i,
           thickness: item.thickness,
           color: item.color,
+          brand: item.brand || state.selectedBrand,
         });
       }
     });
@@ -347,6 +469,7 @@
       label: item.label + (chosen.rotated ? " (r)" : ""),
       thickness: item.thickness,
       color: item.color,
+      brand: item.brand || state.selectedBrand,
     });
 
     const nextFree = [];
@@ -399,9 +522,11 @@
   function estimateQuote(items, settings) {
     const expanded = expandItems(items);
     const grouped = expanded.reduce((acc, item) => {
-      const key = item.color || "Branco TX";
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(item);
+      const brand = normalizeBrand(item.brand || state.selectedBrand);
+      const color = item.color || "Branco TX";
+      const key = brand + "::" + color;
+      if (!acc[key]) acc[key] = { brand: brand, color: color, items: [] };
+      acc[key].items.push(item);
       return acc;
     }, {});
 
@@ -409,9 +534,10 @@
     let placedCount = 0;
     let unplacedTotal = 0;
 
-    Object.keys(grouped).forEach((colorName) => {
+    Object.keys(grouped).forEach((groupKey) => {
+      const group = grouped[groupKey];
       const packed = packItemsMaxRects(
-        grouped[colorName],
+        group.items,
         settings.panelWidth,
         settings.panelHeight,
         settings.cutWidth
@@ -421,8 +547,9 @@
           width: layout.width,
           height: layout.height,
           items: layout.items,
-          color: colorName,
-          colorUrl: (findPaletteByName(colorName) || colorPalette[0]).url,
+          color: group.color,
+          brand: group.brand,
+          colorUrl: findPaletteByName(group.color, group.brand).url,
         });
       });
       placedCount += packed.layouts.reduce((acc, l) => acc + l.items.length, 0);
@@ -455,11 +582,8 @@
 
     let panelCostTotal = 0;
     layouts.forEach((layout) => {
-      if (String(layout.color || "").toLowerCase() === "branco tx") {
-        panelCostTotal += 260;
-      } else {
-        panelCostTotal += 400;
-      }
+      const colorInfo = findPaletteByName(layout.color, layout.brand);
+      panelCostTotal += Number(colorInfo.panelPrice || settings.panelCost || 0);
     });
     const totalCost = panelCostTotal + cutCostTotal;
     return {
@@ -527,7 +651,7 @@
 
         return [
           `<div class="layout-card" data-panel-index="${panelIndex}">`,
-          `<div class="layout-title">Painel ${panelIndex + 1} - ${esc(layout.color || "Branco TX")}</div>`,
+          `<div class="layout-title">Painel ${panelIndex + 1} - ${esc(layout.brand || state.selectedBrand)} - ${esc(layout.color || "Branco TX")}</div>`,
           `<div class="layout-meta">Medidas internas: ${Math.round(layout.width)} x ${Math.round(layout.height)} mm</div>`,
           `<svg class="layout-svg" viewBox="0 0 ${Math.round(layout.width)} ${Math.round(layout.height)}" preserveAspectRatio="xMidYMid meet">`,
           `<defs>`,
@@ -558,7 +682,7 @@
           return [
             '<div class="panel-list-group">',
             `<button class="panel-list-row" type="button" data-panel-index="${idx}">`,
-            `<span class="panel-list-label">Painel ${idx + 1} - ${esc(layout.color || "Branco TX")}</span>`,
+            `<span class="panel-list-label">Painel ${idx + 1} - ${esc(layout.brand || state.selectedBrand)} - ${esc(layout.color || "Branco TX")}</span>`,
             `<span class="panel-list-size">${Math.round(layout.width)} x ${Math.round(layout.height)} mm</span>`,
             "</button>",
             `<div class="panel-piece-list">${rows}</div>`,
@@ -805,12 +929,15 @@
       canRotate: item.canRotate,
       thickness: item.thickness,
       color: item.color,
+      brand: item.brand || state.selectedBrand,
     }));
-    return { items: items };
+    return { brand: state.selectedBrand, items: items };
   }
 
   function applySharePayload(payload) {
     if (!payload || !Array.isArray(payload.items)) return;
+    state.selectedBrand = normalizeBrand(payload.brand || state.selectedBrand);
+    if (brandSelectEl) brandSelectEl.value = state.selectedBrand;
     clearRows();
     payload.items.forEach((item) => {
       addRow({
@@ -1250,10 +1377,29 @@
   document.getElementById("share-link-btn").addEventListener("click", generateShareLink);
   document.getElementById("print-panels-btn").addEventListener("click", printPanels);
 
-  loadFromHash();
-  if (!itemsEl.children.length) {
-    resetProject();
-  } else {
-    calculate();
+  if (brandSelectEl) {
+    brandSelectEl.addEventListener("change", function () {
+      state.selectedBrand = normalizeBrand(brandSelectEl.value);
+      refreshAllRowPalettes();
+      scheduleCalculate();
+    });
   }
+
+  async function init() {
+    populateBrandSelect();
+    try {
+      await loadCatalogFromSheet();
+    } catch (error) {
+      console.warn("Usando catalogo local (fallback).", error);
+    }
+    loadFromHash();
+    if (!itemsEl.children.length) {
+      resetProject();
+    } else {
+      refreshAllRowPalettes();
+      calculate();
+    }
+  }
+
+  init();
 })();
