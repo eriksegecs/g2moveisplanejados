@@ -21,7 +21,7 @@ No arquivo `landing/app.js`, altere:
 
 ## Planilha compartilhada de cores/precos
 1. Crie uma planilha no Google Sheets chamada `Catalogo MDF`.
-2. Importe o arquivo `catalogo-cores-template.csv`.
+2. Importe o arquivo `catalogo-cores-base.csv` (base inicial) ou `catalogo-cores-template.csv` (mínimo).
 3. Aba `Compartilhar`:
    - `Qualquer pessoa com o link` = **Leitor**
    - adicione seu e-mail e o do Dreiky como **Editor**
@@ -36,6 +36,10 @@ Colunas obrigatorias:
 - `nome_cor`
 - `preco_painel`
 - `url_imagem`
+
+Validação do catálogo (antes de publicar):
+- `node scripts/validar-catalogo.js catalogo-cores-base.csv`
+- ou: `node scripts/validar-catalogo.js seu-arquivo.csv`
 
 ## Observacao
 - O seletor de marca no site atualiza automaticamente as cores e os precos com base na planilha.
