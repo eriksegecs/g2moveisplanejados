@@ -28,7 +28,7 @@
     selectedBrand: "arauco",
   };
 
-  const COLOR_CATALOG_CSV_URL = "";
+  const COLOR_CATALOG_CSV_URL = "./catalogo-cores-coletado.csv";
   const BRANDS = [
     { key: "arauco", label: "Arauco" },
     { key: "duratex", label: "Duratex" },
