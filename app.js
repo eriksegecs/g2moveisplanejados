@@ -28,7 +28,7 @@
     selectedBrand: "arauco",
   };
 
-  const COLOR_CATALOG_CSV_URL = "https://eriksegecs.github.io/g2moveisplanejados/catalogo-cores-coletado.csv?v=100chapa-20260209";
+  const COLOR_CATALOG_CSV_URL = "https://docs.google.com/spreadsheets/d/1FMgGYJK5SHGEz6x--SezD4Fcf92QENOzJHrFKFIucyE/export?format=csv&gid=0";
   const BRANDS = [
     { key: "arauco", label: "Arauco" },
     { key: "duratex", label: "Duratex" },
