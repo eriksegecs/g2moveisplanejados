@@ -106,9 +106,7 @@
 
   function getCurrentPalette() {
     const brand = normalizeBrand(state.selectedBrand);
-    const list = catalogByBrand[brand] || [];
-    if (list.length) return list;
-    return catalogByBrand.arauco || [];
+    return catalogByBrand[brand] || [];
   }
 
   function getColorByName(name, brand) {
@@ -180,9 +178,10 @@
 
   function buildColorPalette(groupName, defaultColor) {
     const palette = getCurrentPalette();
-    const selected = palette.some((color) => color.name === defaultColor)
+    const paletteSafe = palette.length ? palette : [{ name: "Sem cor (catálogo vazio)", url: "" }];
+    const selected = paletteSafe.some((color) => color.name === defaultColor)
       ? defaultColor
-      : (palette[0] ? palette[0].name : "Branco TX");
+      : paletteSafe[0].name;
 
     return (
       '<div class="color-picker" data-role="color-picker">' +
@@ -190,7 +189,7 @@
       '<span class="swatch swatch-selected" data-role="color-preview"></span>' +
       "</button>" +
       '<div class="color-palette" role="radiogroup" aria-label="Cor">' +
-      palette
+      paletteSafe
         .map((color) => {
           const checked = color.name === selected ? " checked" : "";
           return (
