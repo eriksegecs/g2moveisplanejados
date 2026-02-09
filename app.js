@@ -28,7 +28,7 @@
     selectedBrand: "arauco",
   };
 
-  const COLOR_CATALOG_CSV_URL = "https://docs.google.com/spreadsheets/d/1FMgGYJK5SHGEz6x--SezD4Fcf92QENOzJHrFKFIucyE/export?format=csv&gid=0";
+  const COLOR_CATALOG_CSV_URL = "https://docs.google.com/spreadsheets/d/1FMgGYJK5SHGEz6x--SezD4Fcf92QENOzJHrFKFIucyE/edit?hl=pt-br&gid=0#gid=0";
   const BRANDS = [
     { key: "arauco", label: "Arauco" },
     { key: "duratex", label: "Duratex" },
@@ -139,40 +139,106 @@
     return output;
   }
 
-  async function loadCatalogFromSheet() {
-    if (!COLOR_CATALOG_CSV_URL) return;
-    const response = await fetch(COLOR_CATALOG_CSV_URL, { cache: "no-store" });
-    if (!response.ok) throw new Error("Falha ao carregar planilha de cores");
-    const csvText = await response.text();
-    const lines = csvText.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-    if (lines.length < 2) return;
+  function normalizeHeader(value) {
+    return String(value || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, "_")
+      .trim();
+  }
 
-    const headers = parseCsvLine(lines[0]).map((h) => h.toLowerCase());
-    const idxBrand = headers.findIndex((h) => ["marca", "brand"].includes(h));
-    const idxName = headers.findIndex((h) => ["nome_cor", "cor", "color_name", "nome"].includes(h));
-    const idxPrice = headers.findIndex((h) => ["preco", "preco_painel", "price", "panel_price"].includes(h));
-    const idxImage = headers.findIndex((h) => ["imagem", "image", "image_url", "url_imagem"].includes(h));
-    if (idxBrand < 0 || idxName < 0 || idxPrice < 0 || idxImage < 0) return;
+  function extractSheetInfo(rawUrl) {
+    try {
+      const url = new URL(rawUrl);
+      const idMatch = url.pathname.match(/\/spreadsheets\/d\/([^/]+)/i);
+      if (!idMatch) return null;
+      const gid = url.searchParams.get("gid") || (url.hash.match(/gid=(\d+)/i)?.[1]) || "0";
+      return { sheetId: idMatch[1], gid: gid };
+    } catch {
+      return null;
+    }
+  }
 
+  function parseGvizRows(text) {
+    const match = text.match(/google\.visualization\.Query\.setResponse\((.*)\);?\s*$/s);
+    if (!match) return [];
+    const payload = JSON.parse(match[1]);
+    const cols = payload?.table?.cols || [];
+    const rows = payload?.table?.rows || [];
+    const headers = cols.map((c) => normalizeHeader(c?.label || c?.id || ""));
+    return rows.map((row) => {
+      const obj = {};
+      (row?.c || []).forEach((cell, idx) => {
+        obj[headers[idx] || `col_${idx}`] = cell && Object.prototype.hasOwnProperty.call(cell, "v") ? cell.v : "";
+      });
+      return obj;
+    });
+  }
+
+  function parseCsvRows(text) {
+    const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    if (lines.length < 2) return [];
+    const headers = parseCsvLine(lines[0]).map((h) => normalizeHeader(h.replace(/^\uFEFF/, "")));
+    return lines.slice(1).map((line) => {
+      const cols = parseCsvLine(line);
+      const obj = {};
+      headers.forEach((h, idx) => {
+        obj[h] = cols[idx] || "";
+      });
+      return obj;
+    });
+  }
+
+  function parsePrice(value) {
+    return Number(String(value || "0").replace(/\./g, "").replace(",", "."));
+  }
+
+  function applyCatalogRows(rows) {
+    if (!rows.length) return false;
     const nextCatalog = JSON.parse(JSON.stringify(fallbackCatalog));
     const replacedBrands = new Set();
-    for (let i = 1; i < lines.length; i += 1) {
-      const cols = parseCsvLine(lines[i]);
-      const brand = normalizeBrand(cols[idxBrand]);
-      const name = String(cols[idxName] || "").trim();
-      const imageUrl = String(cols[idxImage] || "").trim();
-      const price = Number(String(cols[idxPrice] || "0").replace(".", "").replace(",", "."));
-      if (!name || !imageUrl || !Number.isFinite(price) || price <= 0) continue;
+
+    rows.forEach((row) => {
+      const brand = normalizeBrand(row.marca || row.brand);
+      const name = String(row.nome_cor || row.cor || row.color_name || row.nome || "").trim();
+      const imageUrl = String(row.url_imagem || row.imagem || row.image_url || row.image || "").trim();
+      const price = parsePrice(row.preco_painel || row.preco || row.price || row.panel_price);
+      if (!name || !imageUrl || !Number.isFinite(price) || price <= 0) return;
+
       if (!replacedBrands.has(brand)) {
         nextCatalog[brand] = [];
         replacedBrands.add(brand);
       }
       nextCatalog[brand].push({ name: name, url: imageUrl, panelPrice: price });
-    }
+    });
 
     if (Object.values(nextCatalog).some((list) => list.length)) {
       catalogByBrand = nextCatalog;
+      return true;
     }
+    return false;
+  }
+
+  async function loadCatalogFromSheet() {
+    if (!COLOR_CATALOG_CSV_URL) return;
+
+    const response = await fetch(COLOR_CATALOG_CSV_URL, { cache: "no-store" });
+    if (!response.ok) throw new Error("Falha ao carregar planilha de cores");
+    const text = await response.text();
+
+    const fromCsv = parseCsvRows(text);
+    if (applyCatalogRows(fromCsv)) return;
+
+    const info = extractSheetInfo(COLOR_CATALOG_CSV_URL);
+    if (!info) return;
+
+    const gvizUrl = `https://docs.google.com/spreadsheets/d/${info.sheetId}/gviz/tq?gid=${info.gid}&tqx=out:json`;
+    const gvizResponse = await fetch(gvizUrl, { cache: "no-store" });
+    if (!gvizResponse.ok) return;
+    const gvizText = await gvizResponse.text();
+    const fromGviz = parseGvizRows(gvizText);
+    applyCatalogRows(fromGviz);
   }
 
   function populateBrandSelect() {
