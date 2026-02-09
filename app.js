@@ -154,7 +154,8 @@
     const idxImage = headers.findIndex((h) => ["imagem", "image", "image_url", "url_imagem"].includes(h));
     if (idxBrand < 0 || idxName < 0 || idxPrice < 0 || idxImage < 0) return;
 
-    const nextCatalog = { arauco: [], duratex: [], guararapes: [], berneck: [] };
+    const nextCatalog = JSON.parse(JSON.stringify(fallbackCatalog));
+    const replacedBrands = new Set();
     for (let i = 1; i < lines.length; i += 1) {
       const cols = parseCsvLine(lines[i]);
       const brand = normalizeBrand(cols[idxBrand]);
@@ -162,6 +163,10 @@
       const imageUrl = String(cols[idxImage] || "").trim();
       const price = Number(String(cols[idxPrice] || "0").replace(".", "").replace(",", "."));
       if (!name || !imageUrl || !Number.isFinite(price) || price <= 0) continue;
+      if (!replacedBrands.has(brand)) {
+        nextCatalog[brand] = [];
+        replacedBrands.add(brand);
+      }
       nextCatalog[brand].push({ name: name, url: imageUrl, panelPrice: price });
     }
 
