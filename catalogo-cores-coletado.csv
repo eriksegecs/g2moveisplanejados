@@ -1,109 +1,79 @@
 marca,nome_cor,preco_painel,url_imagem
-duratex,Produtos - Duratex - Painéis de MDF e MDP,330,https://www.duratexmadeira.com.br/assets/2022/02/Duratex_Ambiente-Azul-Astral_590x370px-162x162.jpg
-duratex,Amêndola Rústica,330,https://www.duratexmadeira.com.br/assets/2019/08/Amendola-Rustica_Duna_2880x2160x-scaled.jpg.webp
-duratex,Azul Secreto,330,https://www.duratexmadeira.com.br/assets/2017/06/azul-secreto-ambiente-976x468-1.jpg
-duratex,Branco Diamante - Linha Cristallo,330,https://www.duratexmadeira.com.br/assets/2019/08/linha-cristallo-ambiente-branco-diamante-842x533-590x370.jpg
-duratex,Branco Diamante - Linha Essencial,330,https://www.duratexmadeira.com.br/assets/2019/08/slider-ambiente-branco-essencial-nova.png.webp
-duratex,Branco Diamante - Linha Trama,330,https://www.duratexmadeira.com.br/assets/2019/08/linha-trama-ambiente-branco-diamante-842x533-590x370.jpg
-duratex,Carvalho Avelã,330,https://www.duratexmadeira.com.br/assets/2021/06/carvalho-avela-portoro-prata-590x370px.jpg.webp
-duratex,Carvalho Batur,330,https://www.duratexmadeira.com.br/assets/2017/06/carvalho-batur-padrao-essencial-wood-976x468-1-1.jpg.webp
-duratex,Carvalho Berlin,330,https://www.duratexmadeira.com.br/assets/2021/06/carvalho-berlin-hong-kong-lana-590x370px.jpg.webp
-duratex,Brise,330,https://www.duratexmadeira.com.br/assets/2020/03/Brise-842x533px-590x370.jpg
-duratex,Cumaru Raiz,330,https://www.duratexmadeira.com.br/assets/2020/02/Cumaru-842x533px-590x370.jpg
-duratex,Freijó Puro,330,https://www.duratexmadeira.com.br/assets/2019/08/freijo-puro-hong-kong-verde-real-590x370px.jpg.webp
-duratex,Gianduia - Linha Cristallo,330,https://www.duratexmadeira.com.br/assets/2019/08/linha-cristallo-ambiente-gianduia-842x533-590x370.jpg
-duratex,Lana,330,https://www.duratexmadeira.com.br/assets/2018/07/lana-ambiente-conceito-976x468-1.jpg.webp
-duratex,Mint,330,https://www.duratexmadeira.com.br/assets/2019/08/mint-carvalho-luar-portoro-590x370px.jpg
-duratex,Nogueira Caiena,330,https://www.duratexmadeira.com.br/assets/2017/06/nogueira-caiena-padrao-design-976x468-1.jpg.webp
-duratex,Nogueira Thar,330,https://www.duratexmadeira.com.br/assets/2019/08/nogueira-thar-eclipse-verde-real-590x370px.jpg.webp
-duratex,Opala,330,https://www.duratexmadeira.com.br/assets/2017/06/opala-ambiente-cristallo-976x468-1.jpg.webp
-duratex,Pérola Urbana,330,https://www.duratexmadeira.com.br/assets/2017/06/perola-urbana-padrao-essencial-976x468-1.jpg
-duratex,Portoro,330,https://www.duratexmadeira.com.br/assets/2019/08/portoro-carvalho-luar-croma-590x370px.jpg.webp
-duratex,Prata,330,https://www.duratexmadeira.com.br/assets/2019/08/prata-thassos-eclipse-590x370px.jpg.webp
-duratex,Preto - Linha Trama,330,https://www.duratexmadeira.com.br/assets/2019/08/590x370-Preto_Trama.jpg.webp
-duratex,Preto - Linha Cristallo,330,https://www.duratexmadeira.com.br/assets/2019/08/linha-cristallo-ambiente-preto-842x533-590x370.jpg
-duratex,Riviera,330,https://www.duratexmadeira.com.br/assets/2019/08/riviera-hong-kong-gobi-590x370px.jpg
-duratex,Titânio - Linha Cristallo,330,https://www.duratexmadeira.com.br/assets/2019/08/linha-cristallo-ambiente-titanio-842x533-590x370.jpg
-duratex,Titânio - Linha Trama,330,https://www.duratexmadeira.com.br/assets/2019/08/linha-trama-ambiente-titanio-842x533-590x370.jpg
+arauco,Azul Sereno,400,https://arauco.com.br/wp-content/uploads/2024/03/AZUL-SERENO-185x275-1.jpg
+arauco,Beige,400,https://arauco.com.br/wp-content/uploads/2024/03/mdf-beige-arauco.webp
+arauco,Beton,400,https://arauco.com.br/wp-content/uploads/2024/03/mdf-beton-arauco.webp
+arauco,Branco TX,260,https://arauco.com.br/wp-content/uploads/2024/03/Branco-Supremo-_Chess-185x275-1-scaled.jpg
+arauco,Cacao,400,https://arauco.com.br/wp-content/uploads/2024/03/Cacao-Chess-185x275-1-scaled.jpg
+arauco,Cafelatte,400,https://arauco.com.br/wp-content/uploads/2024/03/produto-mdf-cafelatte-arauco.webp
+arauco,Canela,400,https://arauco.com.br/wp-content/uploads/2024/03/Canela-185x275-1-scaled.jpg
+arauco,Cinza Cristal,400,https://arauco.com.br/wp-content/uploads/2024/03/Cinza-Cristal-_Chess-185x275-1-scaled.jpg
+arauco,Cinza Puro,400,https://arauco.com.br/wp-content/uploads/2024/03/mdf-cinza-puro.webp
+arauco,Connect,400,https://arauco.com.br/wp-content/uploads/2024/03/Connect-185x275-1-scaled.jpg
+arauco,Cristalina,400,https://arauco.com.br/wp-content/uploads/2024/03/mdf-cristalina-arauco.webp
+arauco,Damasco,400,https://arauco.com.br/wp-content/uploads/2024/03/Dasmasco-185-x-275-scaled.jpg
+arauco,Ebano,400,https://arauco.com.br/wp-content/uploads/2024/03/Ebano-Chess-185x275-1-scaled.jpg
+arauco,Frape,400,https://arauco.com.br/wp-content/uploads/2024/03/mdf-frape-arauco.webp
+arauco,Grafito,400,https://arauco.com.br/wp-content/uploads/2024/03/mdf-grafito-arauco.webp
+arauco,Gris,400,https://arauco.com.br/wp-content/uploads/2024/03/mdf-griss.webp
+arauco,Jalapao,400,https://arauco.com.br/wp-content/uploads/2024/03/Jalapao-185-x-275-3.jpg
+arauco,Kashmir,400,https://arauco.com.br/wp-content/uploads/2024/03/Kashmir-185x275-1-scaled.jpg
+arauco,Lavanda,400,https://arauco.com.br/wp-content/uploads/2024/03/WhatsApp-Image-2024-03-08-at-23.11.17.jpeg
+arauco,Lord,400,https://arauco.com.br/wp-content/uploads/2024/03/Lord-185x275-1-scaled.jpg
+arauco,Maragogi,400,https://arauco.com.br/wp-content/uploads/2024/03/Maragogi-185-x-275-3.jpg
+arauco,Oceano,400,https://arauco.com.br/wp-content/uploads/2024/01/oceano.webp
+arauco,Sal Rosa,400,https://arauco.com.br/wp-content/uploads/2024/03/Sal-Rosa-185x275-1-scaled.jpg
+arauco,Salvia,400,https://arauco.com.br/wp-content/uploads/2024/03/SALVIA-185x275-1-scaled.jpg
+arauco,Verde Jade,400,https://arauco.com.br/wp-content/uploads/2024/03/Verde-Jade-183x275_menor-scaled.jpg
 duratex,Arenito,330,https://www.duratexmadeira.com.br/assets/2020/03/Arenito2-842x533px-590x370.jpg
-duratex,Aurora,330,https://www.duratexmadeira.com.br/assets/2019/08/Aurora_Trama_3110x2160px-scaled.jpg.webp
-duratex,Branco Ártico - Linha Original,330,https://www.duratexmadeira.com.br/assets/2019/08/590x370-branco-original.jpg.webp
-duratex,Carvalho Hanover,330,https://www.duratexmadeira.com.br/assets/2019/08/slider-ambiente-hanover.png.webp
-duratex,Carvalho Munique,330,https://www.duratexmadeira.com.br/assets/2019/08/linha-design-ambiente-carvalho-munique-842x533-590x370.jpg
-duratex,Cinza Sagrado - Linha Essencial,330,https://www.duratexmadeira.com.br/assets/2019/08/Cinza-Sagrado_Essencial_3026x2160px-590x370.jpg
+duratex,Produtos - Duratex - Painéis de MDF e MDP,330,https://www.duratexmadeira.com.br/assets/2022/02/Duratex_Ambiente-Azul-Astral_590x370px-162x162.jpg
+duratex,Lana,330,https://www.duratexmadeira.com.br/assets/2018/07/lana-ambiente-conceito-976x468-1.jpg.webp
+duratex,Branco Diamante - Linha Cristallo,330,https://www.duratexmadeira.com.br/assets/2019/08/linha-cristallo-ambiente-branco-diamante-842x533-590x370.jpg
 duratex,Cinza Sagrado,330,https://www.duratexmadeira.com.br/assets/2021/06/cinza-sagrado-cristallo-thassos-croma-590x370px.jpg
-duratex,Cristal,330,https://www.duratexmadeira.com.br/assets/2021/06/cristal-carvalho-eterno-sirena-590x370px.jpg
+duratex,Gianduia - Linha Cristallo,330,https://www.duratexmadeira.com.br/assets/2019/08/linha-cristallo-ambiente-gianduia-842x533-590x370.jpg
+duratex,Opala,330,https://www.duratexmadeira.com.br/assets/2017/06/opala-ambiente-cristallo-976x468-1.jpg.webp
+duratex,Pau Ferro Natural,330,https://www.duratexmadeira.com.br/assets/2020/02/10-Sala-Pau-ferro-Natural-Thassos-e-Parma-842x533px-590x370.jpg
+duratex,Preto - Linha Cristallo,330,https://www.duratexmadeira.com.br/assets/2019/08/linha-cristallo-ambiente-preto-842x533-590x370.jpg
+duratex,Titânio - Linha Cristallo,330,https://www.duratexmadeira.com.br/assets/2019/08/linha-cristallo-ambiente-titanio-842x533-590x370.jpg
+duratex,Aurora,330,https://www.duratexmadeira.com.br/assets/2019/08/Aurora_Trama_3110x2160px-scaled.jpg.webp
+duratex,Branco Ártico - Linha Trama,330,https://www.duratexmadeira.com.br/assets/2021/05/Branco-Artico_Trama_2880x2160px-scaled.jpg.webp
+duratex,Branco Diamante - Linha Trama,330,https://www.duratexmadeira.com.br/assets/2019/08/linha-trama-ambiente-branco-diamante-842x533-590x370.jpg
 duratex,Gianduia - Linha Trama,330,https://www.duratexmadeira.com.br/assets/2019/08/slider-ambiente-gianduia.png.webp
 duratex,Grafite,330,https://www.duratexmadeira.com.br/assets/2019/08/linha-trama-ambiente-grafite-842x533-590x370.jpg
+duratex,Preto - Linha Trama,330,https://www.duratexmadeira.com.br/assets/2019/08/590x370-Preto_Trama.jpg.webp
+duratex,Titânio - Linha Trama,330,https://www.duratexmadeira.com.br/assets/2019/08/linha-trama-ambiente-titanio-842x533-590x370.jpg
+duratex,Absoluto,330,https://www.duratexmadeira.com.br/assets/2021/06/Absoluto_Design_2778x2160px-scaled.jpg.webp
+duratex,Brise,330,https://www.duratexmadeira.com.br/assets/2020/03/Brise-842x533px-590x370.jpg
+duratex,Carvalho Avelã,330,https://www.duratexmadeira.com.br/assets/2021/06/carvalho-avela-portoro-prata-590x370px.jpg.webp
+duratex,Carvalho Berlin,330,https://www.duratexmadeira.com.br/assets/2021/06/carvalho-berlin-hong-kong-lana-590x370px.jpg.webp
+duratex,Carvalho Hanover,330,https://www.duratexmadeira.com.br/assets/2019/08/slider-ambiente-hanover.png.webp
+duratex,Carvalho Malva,330,https://www.duratexmadeira.com.br/assets/2024/03/CARVALHO-MALVA-copiar.png.webp
+duratex,Carvalho Munique,330,https://www.duratexmadeira.com.br/assets/2019/08/linha-design-ambiente-carvalho-munique-842x533-590x370.jpg
+duratex,Nogueira Caiena,330,https://www.duratexmadeira.com.br/assets/2017/06/nogueira-caiena-padrao-design-976x468-1.jpg.webp
+duratex,Nogueira Thar,330,https://www.duratexmadeira.com.br/assets/2019/08/nogueira-thar-eclipse-verde-real-590x370px.jpg.webp
+duratex,Carvalho Batur,330,https://www.duratexmadeira.com.br/assets/2017/06/carvalho-batur-padrao-essencial-wood-976x468-1-1.jpg.webp
+duratex,Cumaru Raiz,330,https://www.duratexmadeira.com.br/assets/2020/02/Cumaru-842x533px-590x370.jpg
+duratex,Freijó Puro,330,https://www.duratexmadeira.com.br/assets/2019/08/freijo-puro-hong-kong-verde-real-590x370px.jpg.webp
+duratex,Jequitibá Rosa,330,https://www.duratexmadeira.com.br/assets/2021/06/S_Ambiente_Essencial-Wood_Jequitiba-Rosa.png.webp
+duratex,Azul Secreto,330,https://www.duratexmadeira.com.br/assets/2017/06/azul-secreto-ambiente-976x468-1.jpg
+duratex,Branco Diamante - Linha Essencial,330,https://www.duratexmadeira.com.br/assets/2019/08/slider-ambiente-branco-essencial-nova.png.webp
+duratex,Cinza Sagrado - Linha Essencial,330,https://www.duratexmadeira.com.br/assets/2019/08/Cinza-Sagrado_Essencial_3026x2160px-590x370.jpg
+duratex,Mint,330,https://www.duratexmadeira.com.br/assets/2019/08/mint-carvalho-luar-portoro-590x370px.jpg
 duratex,Noce Amêndoa,330,https://www.duratexmadeira.com.br/assets/2019/08/noce-amendoa-portoro-eclipse-590x370px.jpg.webp
 duratex,Noce Mare,330,https://www.duratexmadeira.com.br/assets/2019/08/noce-mare-steel-arenito-590x370px.jpg.webp
-duratex,Ovo,330,https://www.duratexmadeira.com.br/assets/2019/08/ovo-carvalho-eterno-portoro-590x370px.jpg
-duratex,Thassos,330,https://www.duratexmadeira.com.br/assets/2019/08/thassos-nobile-metropole-590x370px.jpg.webp
-duratex,Ocre Solar,330,https://www.duratexmadeira.com.br/assets/2022/02/590x370-ocre-solar.jpg
-duratex,Verde Floresta,330,https://www.duratexmadeira.com.br/assets/2022/03/590x370-verde-floresta.jpg.webp
-duratex,Rosa Infinito,330,https://www.duratexmadeira.com.br/assets/2021/06/S_Ambiente_Essencial_Rosa-Infinito.png.webp
-duratex,Moss,330,https://www.duratexmadeira.com.br/assets/2023/02/Moss-590x370-1-1-1.png.webp
-duratex,Bétula,330,https://www.duratexmadeira.com.br/assets/2024/02/BETULA-copiar-1.png.webp
-duratex,Azul Profundo,330,https://www.duratexmadeira.com.br/assets/2024/02/AZUL-PROFUNDO-1.png.webp
-duratex,Nogueira Asti,330,https://www.duratexmadeira.com.br/assets/2024/02/NOGUEIRA-ASTIS-copiar-1.png.webp
-duratex,Linho Belga,330,https://www.duratexmadeira.com.br/assets/2024/02/LINHO-BELGA-copiar-1.png.webp
-duratex,Fusion,330,https://www.duratexmadeira.com.br/assets/2024/02/fusion1-1.png.webp
-duratex,Teka Soho,330,https://www.duratexmadeira.com.br/assets/2024/02/TEKA-SOHO-1-copiar-1.png.webp
-duratex,Downtown,330,https://www.duratexmadeira.com.br/assets/2024/02/DOWNTOWN-SERRA-copiar-1.png.webp
-duratex,Gianduia Puro,330,https://www.duratexmadeira.com.br/assets/2024/02/GIANDUIA-PURO-1.png.webp
-duratex,Rovere Braga,330,https://www.duratexmadeira.com.br/assets/2024/02/ROVERE-BRAGA-2-copiar-3.png.webp
-duratex,Blush,330,https://www.duratexmadeira.com.br/assets/2024/02/BLUSH-copiar-1.png.webp
-duratex,Carvalho Dian,330,https://www.duratexmadeira.com.br/assets/2023/06/CarvalhoDianAmbiente590x370.png.webp
-duratex,Nogueira Flórida,330,https://www.duratexmadeira.com.br/assets/2023/02/NogueiraFlorida-590x370-1.png.webp
-duratex,Nazca,330,https://www.duratexmadeira.com.br/assets/2023/02/Nazca-590x370-1-1-1.png.webp
-duratex,Quartzo Bienna,330,https://www.duratexmadeira.com.br/assets/2023/02/Quartzo-Bienna.png.webp
-duratex,Gianduia Natural,330,https://www.duratexmadeira.com.br/assets/2023/02/GianduiaNatural-590x370-1-1.png.webp
-duratex,Cinza Fóssil,330,https://www.duratexmadeira.com.br/assets/2023/02/Cinza-Fossil-590x370-1-1.png.webp
-duratex,Azul Astral,330,https://www.duratexmadeira.com.br/assets/2022/02/590x370-azul-astral.jpg.webp
-duratex,Palha,330,https://www.duratexmadeira.com.br/assets/2022/02/Duratex_Ambiente-Palha_590x370px.jpg
-duratex,Oásis,330,https://www.duratexmadeira.com.br/assets/2022/02/Duratex_Ambiente-Oasis_590x370px.jpg
+duratex,Pérola Urbana,330,https://www.duratexmadeira.com.br/assets/2017/06/perola-urbana-padrao-essencial-976x468-1.jpg
 duratex,Pinole,330,https://www.duratexmadeira.com.br/assets/2021/06/S_Ambiente_Essencial_Pinole.png.webp
-duratex,Pau Ferro Natural,330,https://www.duratexmadeira.com.br/assets/2021/06/S_Ambiente_Essencial-Wood_Pau-Ferro-Natural.png.webp
-duratex,Jequitibá Rosa,330,https://www.duratexmadeira.com.br/assets/2021/06/S_Ambiente_Essencial-Wood_Jequitiba-Rosa.png.webp
-duratex,Absoluto,330,https://www.duratexmadeira.com.br/assets/2021/06/Absoluto_Design_2778x2160px-scaled.jpg.webp
-duratex,Branco Ártico - Linha Trama,330,https://www.duratexmadeira.com.br/assets/2021/05/Branco-Artico_Trama_2880x2160px-scaled.jpg.webp
+duratex,Portoro,330,https://www.duratexmadeira.com.br/assets/2019/08/portoro-carvalho-luar-croma-590x370px.jpg.webp
+duratex,Prata,330,https://www.duratexmadeira.com.br/assets/2019/08/prata-thassos-eclipse-590x370px.jpg.webp
+duratex,Rosa Infinito,330,https://www.duratexmadeira.com.br/assets/2021/06/S_Ambiente_Essencial_Rosa-Infinito.png.webp
+duratex,Thassos,330,https://www.duratexmadeira.com.br/assets/2019/08/thassos-nobile-metropole-590x370px.jpg.webp
+duratex,Amêndola Rústica,330,https://www.duratexmadeira.com.br/assets/2019/08/Amendola-Rustica_Duna_2880x2160x-scaled.jpg.webp
 duratex,Larnaca,330,https://www.duratexmadeira.com.br/assets/2019/08/slider-ambiente-larnaca.png.webp
-duratex,Preto Acetinatta - Duratex - Painéis de MDF e MDP,330,https://www.duratexmadeira.com.br/assets/2023/03/Preto-590x370-1.png.webp
-duratex,Tartufo,330,https://www.duratexmadeira.com.br/assets/2023/03/Tartufo-590x370-1.png.webp
-duratex,Branco Diamante,330,https://www.duratexmadeira.com.br/assets/2023/03/Branco-Diamante-590x370-1.png.webp
-duratex,Nogueira Bourbon,330,https://www.duratexmadeira.com.br/assets/2025/02/nogueira-bourbon-1.png
-duratex,Pérola Absoluto,330,https://www.duratexmadeira.com.br/assets/2025/02/perola-absoluto-1.png
-duratex,Zinco,330,https://www.duratexmadeira.com.br/assets/2025/02/zinco-1.png
-duratex,Off-White Suave,330,https://www.duratexmadeira.com.br/assets/2024/02/OFF-WHITE-SUAVE-2-copiar-1.png.webp
-duratex,Moss Absoluto,330,https://www.duratexmadeira.com.br/assets/2025/02/moss-absoluto-1.png
-duratex,Carvalho Lir,330,https://www.duratexmadeira.com.br/assets/2023/06/CarvalhoLirAmbiente590x370.png.webp
-duratex,Galáxia,330,https://www.duratexmadeira.com.br/assets/2023/08/Galaxia.png.webp
-duratex,Partitura,330,https://www.duratexmadeira.com.br/assets/2023/08/Partitura.png.webp
-duratex,Cosmos,330,https://www.duratexmadeira.com.br/assets/2023/08/Cosmos.png.webp
-duratex,Encontros,330,https://www.duratexmadeira.com.br/assets/2023/08/Encontros.png.webp
-duratex,Camadas Brasileiras,330,https://www.duratexmadeira.com.br/assets/2023/08/CamadasBrasileiras.png.webp
-duratex,Ginga com Tapioca,330,https://www.duratexmadeira.com.br/assets/2023/08/GingaComTapica.png.webp
-duratex,Legno,330,https://www.duratexmadeira.com.br/assets/2023/08/Legno.png.webp
-duratex,Chevron,330,https://www.duratexmadeira.com.br/assets/2023/08/Chevron.png.webp
-duratex,Delicate,330,https://www.duratexmadeira.com.br/assets/2023/08/Delicate.png.webp
-duratex,Canelado,330,https://www.duratexmadeira.com.br/assets/2023/08/Canelado.png.webp
-duratex,Calacata Gold,330,https://www.duratexmadeira.com.br/assets/2023/08/CalatacaGold.png.webp
-duratex,Rock,330,https://www.duratexmadeira.com.br/assets/2023/06/rock-ambiente-590x370-1.png.webp
-duratex,Zen,330,https://www.duratexmadeira.com.br/assets/2024/03/Zen_Felipe-Savassi-copiar.png.webp
-duratex,Tribus,330,https://www.duratexmadeira.com.br/assets/2024/03/Tribus_Denise-Zuba-1-1.png.webp
-duratex,Trevi,330,https://www.duratexmadeira.com.br/assets/2024/03/Trevi_Acetinatta.png.webp
-duratex,Tramas,330,https://www.duratexmadeira.com.br/assets/2024/03/Tramas_Carlos-Rossi-copiar-2.png.webp
-duratex,Tape,330,https://www.duratexmadeira.com.br/assets/2025/02/Tape_274mX184m.png
-duratex,Ruvia,330,https://www.duratexmadeira.com.br/assets/2025/02/Ruvia_274mX184m.png
-duratex,Rialto,330,https://www.duratexmadeira.com.br/assets/2024/03/Rialto-final-copiar-590x370.png.webp
-duratex,Lago,330,https://www.duratexmadeira.com.br/assets/2025/02/Lago_274mX184m.png
-duratex,NexGeo,330,https://www.duratexmadeira.com.br/assets/2025/02/NEX-GEO-DURATEX-YOU.png
-duratex,Bossa,330,https://www.duratexmadeira.com.br/assets/2025/02/Bossa_274mX184m.png
-duratex,Preto - Linha Original,330,https://www.duratexmadeira.com.br/assets/2019/08/590x370-Preto_Original.jpg.webp
-duratex,Itapuã,330,https://www.duratexmadeira.com.br/assets/2019/08/itapua-portoro-carbono-590x370px.jpg.webp
-duratex,Nogueira Cadiz,330,https://www.duratexmadeira.com.br/assets/2019/08/nogueira-cadiz-arenito-verde-real-590x370px.jpg.webp
-duratex,Carvalho Malva,330,https://www.duratexmadeira.com.br/assets/2024/03/CARVALHO-MALVA-copiar.png.webp
-duratex,Freijó Imperial,330,https://www.duratexmadeira.com.br/assets/2025/02/freijo-imperial-590x370px-150dpi.png
+duratex,Riviera,330,https://www.duratexmadeira.com.br/assets/2019/08/riviera-hong-kong-gobi-590x370px.jpg
+duratex,Azul Astral,330,https://www.duratexmadeira.com.br/assets/2022/02/590x370-azul-astral.jpg.webp
+duratex,Verde Floresta,330,https://www.duratexmadeira.com.br/assets/2022/03/590x370-verde-floresta.jpg.webp
+duratex,Ocre Solar,330,https://www.duratexmadeira.com.br/assets/2022/02/590x370-ocre-solar.jpg
+duratex,Oásis,330,https://www.duratexmadeira.com.br/assets/2022/02/Duratex_Ambiente-Oasis_590x370px.jpg
+duratex,Palha,330,https://www.duratexmadeira.com.br/assets/2022/02/Duratex_Ambiente-Palha_590x370px.jpg
 guararapes,Guararapes,320,https://images.prismic.io/guararapes/039816ca-4e96-4737-a635-92445c6a89e1_guararapes-produtos-frameply.jpg?ixlib=gatsbyFP&auto=compress%2Cformat&fit=max&q=50
 guararapes,MDF Noite,320,https://images.prismic.io/guararapes/4103262e-73bb-45f2-a7db-b1e701aa9d3c_guararapes-produtos-noite.png?ixlib=gatsbyFP&auto=compress%2Cformat&fit=max&q=50
 guararapes,Guararapes Painéis de MDF,320,https://images.prismic.io/guararapes/cbfd85f1-a5b3-455d-a4d8-6377df0cae0d_guararapes-produtos-MDF-Cru.jpg?ixlib=gatsbyFP&auto=compress%2Cformat&fit=max&q=50
@@ -260,3 +230,58 @@ berneck,Tangará | Coleção Horizontes,315,https://www.berneck.com.br/uploads/P
 berneck,Falésia | Coleção Horizontes,315,https://www.berneck.com.br/uploads/BERNECK_FALESIA_VEL_8e453289a4.jpg
 berneck,Branco Tx,315,https://www.berneck.com.br/uploads/branco_tx_background_3_652f495da2.jpg
 berneck,Preto Design,315,https://www.berneck.com.br/uploads/Preto_Design_3d5b20ac3b.jpg
+duratex,Branco Ártico - Linha Original,330,https://www.duratexmadeira.com.br/assets/2019/08/590x370-branco-original.jpg.webp
+duratex,Cristal,330,https://www.duratexmadeira.com.br/assets/2021/06/cristal-carvalho-eterno-sirena-590x370px.jpg
+duratex,Ovo,330,https://www.duratexmadeira.com.br/assets/2019/08/ovo-carvalho-eterno-portoro-590x370px.jpg
+duratex,Moss,330,https://www.duratexmadeira.com.br/assets/2023/02/Moss-590x370-1-1-1.png.webp
+duratex,Bétula,330,https://www.duratexmadeira.com.br/assets/2024/02/BETULA-copiar-1.png.webp
+duratex,Azul Profundo,330,https://www.duratexmadeira.com.br/assets/2024/02/AZUL-PROFUNDO-1.png.webp
+duratex,Nogueira Asti,330,https://www.duratexmadeira.com.br/assets/2024/02/NOGUEIRA-ASTIS-copiar-1.png.webp
+duratex,Linho Belga,330,https://www.duratexmadeira.com.br/assets/2024/02/LINHO-BELGA-copiar-1.png.webp
+duratex,Fusion,330,https://www.duratexmadeira.com.br/assets/2024/02/fusion1-1.png.webp
+duratex,Teka Soho,330,https://www.duratexmadeira.com.br/assets/2024/02/TEKA-SOHO-1-copiar-1.png.webp
+duratex,Downtown,330,https://www.duratexmadeira.com.br/assets/2024/02/DOWNTOWN-SERRA-copiar-1.png.webp
+duratex,Gianduia Puro,330,https://www.duratexmadeira.com.br/assets/2024/02/GIANDUIA-PURO-1.png.webp
+duratex,Rovere Braga,330,https://www.duratexmadeira.com.br/assets/2024/02/ROVERE-BRAGA-2-copiar-3.png.webp
+duratex,Blush,330,https://www.duratexmadeira.com.br/assets/2024/02/BLUSH-copiar-1.png.webp
+duratex,Carvalho Dian,330,https://www.duratexmadeira.com.br/assets/2023/06/CarvalhoDianAmbiente590x370.png.webp
+duratex,Nogueira Flórida,330,https://www.duratexmadeira.com.br/assets/2023/02/NogueiraFlorida-590x370-1.png.webp
+duratex,Nazca,330,https://www.duratexmadeira.com.br/assets/2023/02/Nazca-590x370-1-1-1.png.webp
+duratex,Quartzo Bienna,330,https://www.duratexmadeira.com.br/assets/2023/02/Quartzo-Bienna.png.webp
+duratex,Gianduia Natural,330,https://www.duratexmadeira.com.br/assets/2023/02/GianduiaNatural-590x370-1-1.png.webp
+duratex,Cinza Fóssil,330,https://www.duratexmadeira.com.br/assets/2023/02/Cinza-Fossil-590x370-1-1.png.webp
+duratex,Preto Acetinatta - Duratex - Painéis de MDF e MDP,330,https://www.duratexmadeira.com.br/assets/2023/03/Preto-590x370-1.png.webp
+duratex,Tartufo,330,https://www.duratexmadeira.com.br/assets/2023/03/Tartufo-590x370-1.png.webp
+duratex,Branco Diamante,330,https://www.duratexmadeira.com.br/assets/2023/03/Branco-Diamante-590x370-1.png.webp
+duratex,Nogueira Bourbon,330,https://www.duratexmadeira.com.br/assets/2025/02/nogueira-bourbon-1.png
+duratex,Pérola Absoluto,330,https://www.duratexmadeira.com.br/assets/2025/02/perola-absoluto-1.png
+duratex,Zinco,330,https://www.duratexmadeira.com.br/assets/2025/02/zinco-1.png
+duratex,Off-White Suave,330,https://www.duratexmadeira.com.br/assets/2024/02/OFF-WHITE-SUAVE-2-copiar-1.png.webp
+duratex,Moss Absoluto,330,https://www.duratexmadeira.com.br/assets/2025/02/moss-absoluto-1.png
+duratex,Carvalho Lir,330,https://www.duratexmadeira.com.br/assets/2023/06/CarvalhoLirAmbiente590x370.png.webp
+duratex,Galáxia,330,https://www.duratexmadeira.com.br/assets/2023/08/Galaxia.png.webp
+duratex,Partitura,330,https://www.duratexmadeira.com.br/assets/2023/08/Partitura.png.webp
+duratex,Cosmos,330,https://www.duratexmadeira.com.br/assets/2023/08/Cosmos.png.webp
+duratex,Encontros,330,https://www.duratexmadeira.com.br/assets/2023/08/Encontros.png.webp
+duratex,Camadas Brasileiras,330,https://www.duratexmadeira.com.br/assets/2023/08/CamadasBrasileiras.png.webp
+duratex,Ginga com Tapioca,330,https://www.duratexmadeira.com.br/assets/2023/08/GingaComTapica.png.webp
+duratex,Legno,330,https://www.duratexmadeira.com.br/assets/2023/08/Legno.png.webp
+duratex,Chevron,330,https://www.duratexmadeira.com.br/assets/2023/08/Chevron.png.webp
+duratex,Delicate,330,https://www.duratexmadeira.com.br/assets/2023/08/Delicate.png.webp
+duratex,Canelado,330,https://www.duratexmadeira.com.br/assets/2023/08/Canelado.png.webp
+duratex,Calacata Gold,330,https://www.duratexmadeira.com.br/assets/2023/08/CalatacaGold.png.webp
+duratex,Rock,330,https://www.duratexmadeira.com.br/assets/2023/06/rock-ambiente-590x370-1.png.webp
+duratex,Zen,330,https://www.duratexmadeira.com.br/assets/2024/03/Zen_Felipe-Savassi-copiar.png.webp
+duratex,Tribus,330,https://www.duratexmadeira.com.br/assets/2024/03/Tribus_Denise-Zuba-1-1.png.webp
+duratex,Trevi,330,https://www.duratexmadeira.com.br/assets/2024/03/Trevi_Acetinatta.png.webp
+duratex,Tramas,330,https://www.duratexmadeira.com.br/assets/2024/03/Tramas_Carlos-Rossi-copiar-2.png.webp
+duratex,Tape,330,https://www.duratexmadeira.com.br/assets/2025/02/Tape_274mX184m.png
+duratex,Ruvia,330,https://www.duratexmadeira.com.br/assets/2025/02/Ruvia_274mX184m.png
+duratex,Rialto,330,https://www.duratexmadeira.com.br/assets/2024/03/Rialto-final-copiar-590x370.png.webp
+duratex,Lago,330,https://www.duratexmadeira.com.br/assets/2025/02/Lago_274mX184m.png
+duratex,NexGeo,330,https://www.duratexmadeira.com.br/assets/2025/02/NEX-GEO-DURATEX-YOU.png
+duratex,Bossa,330,https://www.duratexmadeira.com.br/assets/2025/02/Bossa_274mX184m.png
+duratex,Preto - Linha Original,330,https://www.duratexmadeira.com.br/assets/2019/08/590x370-Preto_Original.jpg.webp
+duratex,Itapuã,330,https://www.duratexmadeira.com.br/assets/2019/08/itapua-portoro-carbono-590x370px.jpg.webp
+duratex,Nogueira Cadiz,330,https://www.duratexmadeira.com.br/assets/2019/08/nogueira-cadiz-arenito-verde-real-590x370px.jpg.webp
+duratex,Freijó Imperial,330,https://www.duratexmadeira.com.br/assets/2025/02/freijo-imperial-590x370px-150dpi.png
