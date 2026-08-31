@@ -8,6 +8,8 @@
     cutWidthRouter: 14,
     panelCost: 350,
     cutCostSaw: 3.5,
+    edgeBandRate: 2,
+    edgeBandAllowance: 50,
     routerRate: {
       "6": 16,
       "15": 30,
@@ -19,7 +21,8 @@
       "18": 220,
     },
     whatsappNumber: "554197190158",
-    emailEndpoint: "https://formsubmit.co/ajax/?token=6db5f26a7b24c72bbc9ed8175c334d8c",
+    emailTo: "dreikyy@gmail.com",
+    emailEndpoint: "https://formsubmit.co/ajax/dreikyy@gmail.com",
   };
 
   const state = {
@@ -34,6 +37,12 @@
     { key: "duratex", label: "Duratex" },
     { key: "guararapes", label: "Guararapes" },
     { key: "berneck", label: "Berneck" },
+  ];
+  const EDGE_SIDES = [
+    { key: "top", label: "Superior", short: "Sup." },
+    { key: "right", label: "Direito", short: "Dir." },
+    { key: "bottom", label: "Inferior", short: "Inf." },
+    { key: "left", label: "Esquerdo", short: "Esq." },
   ];
 
   const fallbackCatalog = {
@@ -80,6 +89,13 @@
   const sumCutsEl = document.getElementById("sum-cuts");
   const sumCostEl = document.getElementById("sum-cost");
   const sumMethodEl = document.getElementById("sum-method");
+  const sumPanelCostEl = document.getElementById("sum-panel-cost");
+  const sumCutTypeEl = document.getElementById("sum-cut-type");
+  const sumCutUnitEl = document.getElementById("sum-cut-unit");
+  const sumCutCostEl = document.getElementById("sum-cut-cost");
+  const sumEdgeSidesEl = document.getElementById("sum-edge-sides");
+  const sumEdgeLengthEl = document.getElementById("sum-edge-length");
+  const sumEdgeCostEl = document.getElementById("sum-edge-cost");
 
   const toggleLabelsEl = document.getElementById("toggle-labels");
   const toggleDimensionsEl = document.getElementById("toggle-dimensions");
@@ -97,8 +113,6 @@
     return label;
   }
 
-  let colorGroupId = 0;
-
   function normalizeBrand(value) {
     const normalized = String(value || "").trim().toLowerCase();
     return BRANDS.some((b) => b.key === normalized) ? normalized : "arauco";
@@ -112,7 +126,56 @@
   function getColorByName(name, brand) {
     const selectedBrand = normalizeBrand(brand || state.selectedBrand);
     const list = catalogByBrand[selectedBrand] || [];
-    return list.find((color) => color.name === name) || null;
+    const normalizedName = normalizeColorKey(name);
+    return list.find((color) => normalizeColorKey(color.name) === normalizedName) || null;
+  }
+
+  function cleanColorName(value) {
+    return String(value || "").trim().replace(/\s+/g, " ") || "Sem cor";
+  }
+
+  function normalizeColorKey(value) {
+    return cleanColorName(value)
+      .toLocaleLowerCase("pt-BR")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+  }
+
+  function normalizeEdgeSides(value) {
+    const sides = Array.isArray(value) ? value : [];
+    return EDGE_SIDES.map((side) => side.key).filter((side) => sides.includes(side));
+  }
+
+  function edgeSideNames(value, short) {
+    const sides = normalizeEdgeSides(value);
+    if (!sides.length) return "Nenhum";
+    return sides
+      .map((key) => {
+        const side = EDGE_SIDES.find((item) => item.key === key);
+        return short ? side.short : side.label;
+      })
+      .join(", ");
+  }
+
+  function rotateEdgeSides(value) {
+    const clockwise = { top: "right", right: "bottom", bottom: "left", left: "top" };
+    return normalizeEdgeSides(value).map((side) => clockwise[side]);
+  }
+
+  function edgeBandLengthMm(item) {
+    return normalizeEdgeSides(item.edgeSides).reduce((total, side) => {
+      const sideLength = side === "top" || side === "bottom" ? Number(item.width) : Number(item.height);
+      return total + sideLength + DEFAULTS.edgeBandAllowance;
+    }, 0);
+  }
+
+  function edgeStrokeColor(name) {
+    const normalized = normalizeColorKey(name || "fita");
+    let hash = 0;
+    for (let i = 0; i < normalized.length; i += 1) {
+      hash = (hash * 31 + normalized.charCodeAt(i)) >>> 0;
+    }
+    return `hsl(${hash % 360} 72% 42%)`;
   }
 
   function parseCsvLine(line) {
@@ -247,57 +310,49 @@
     brandSelectEl.value = normalizeBrand(state.selectedBrand);
   }
 
-  function buildColorPalette(groupName, defaultColor) {
-    const palette = getCurrentPalette();
-    const paletteSafe = palette.length ? palette : [{ name: "Sem cor (catálogo vazio)", url: "" }];
-    const selected = paletteSafe.some((color) => color.name === defaultColor)
-      ? defaultColor
-      : paletteSafe[0].name;
+  function populateColorNameOptions() {
+    let datalist = document.getElementById("color-name-options");
+    if (!datalist) {
+      datalist = document.createElement("datalist");
+      datalist.id = "color-name-options";
+      document.body.appendChild(datalist);
+    }
+    datalist.innerHTML = getCurrentPalette()
+      .map((color) => `<option value="${esc(color.name)}"></option>`)
+      .join("");
+  }
 
-    return (
-      '<div class="color-picker" data-role="color-picker">' +
-      '<button type="button" class="color-toggle" aria-label="Selecionar cor">' +
-      '<span class="swatch swatch-selected" data-role="color-preview"></span>' +
-      "</button>" +
-      '<div class="color-palette" role="radiogroup" aria-label="Cor">' +
-      paletteSafe
-        .map((color) => {
-          const checked = color.name === selected ? " checked" : "";
-          return (
-            '<label class="color-swatch" title="' +
-            color.name +
-            '">' +
-            '<input type="radio" data-role="item-color" name="' +
-            groupName +
-            '" value="' +
-            color.name +
-            '"' +
-            checked +
-            ">" +
-            '<span class="swatch" style="background-image:url(' +
-            color.url +
-            ')"></span>' +
-            "</label>"
-          );
-        })
-        .join("") +
-      "</div>" +
-      "</div>"
-    );
+  function buildEdgeSidePicker() {
+    return [
+      '<details class="edge-side-picker">',
+      '<summary><span data-role="edge-side-summary">0 lados</span></summary>',
+      '<div class="edge-side-options">',
+      EDGE_SIDES.map((side) => (
+        '<label><input type="checkbox" data-role="edge-side" value="' + side.key + '"><span>' + side.label + "</span></label>"
+      )).join(""),
+      "</div>",
+      "</details>",
+    ].join("");
+  }
+
+  function updateEdgeSideSummary(row) {
+    const sides = Array.from(row.querySelectorAll('input[data-role="edge-side"]:checked')).map((input) => input.value);
+    const summary = row.querySelector('[data-role="edge-side-summary"]');
+    if (summary) summary.textContent = sides.length === 1 ? "1 lado" : sides.length + " lados";
   }
 
   function rowTemplate() {
     const row = document.createElement("div");
     row.className = "item-row";
-    colorGroupId += 1;
-    const groupName = "item_color_" + colorGroupId;
     row.innerHTML = [
-      '<input type="text" name="item_label" class="item-label-input" maxlength="24" placeholder="ID">',
-      '<input type="text" name="item_width" minlength="1" maxlength="4" inputmode="numeric" pattern="[0-9]*" required>',
-      '<input type="text" name="item_height" minlength="1" maxlength="4" inputmode="numeric" pattern="[0-9]*" required>',
+      '<input type="text" name="item_label" class="item-label-input" maxlength="40" placeholder="Ex.: Porta direita" aria-label="ID da peça">',
+      '<input type="text" name="item_width" minlength="1" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="mm" aria-label="Largura em milímetros" required>',
+      '<input type="text" name="item_height" minlength="1" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="mm" aria-label="Altura em milímetros" required>',
       '<input type="number" name="item_qty" min="1" value="1" required>',
-      '<select name="item_thickness" class="item-select"><option value="6">6mm</option><option value="15">15mm</option><option value="18">18mm</option></select>',
-      buildColorPalette(groupName, "Branco TX"),
+      '<select name="item_thickness" class="item-select" aria-label="Espessura em milímetros"><option value="6">6 mm</option><option value="15">15 mm</option><option value="18">18 mm</option></select>',
+      '<input type="text" name="item_color" class="item-color-input" maxlength="50" list="color-name-options" placeholder="Nome da cor" aria-label="Nome da cor" required>',
+      '<input type="text" name="edge_band_color" class="edge-band-color-input" maxlength="50" placeholder="Cor da fita" aria-label="Nome da cor da fita de borda">',
+      buildEdgeSidePicker(),
       '<label class="checkbox compact"><input type="checkbox" class="rotate-toggle" checked></label>',
       '<button class="btn btn-ghost remove-row compact" type="button">-</button>',
     ].join("");
@@ -325,35 +380,16 @@
       if (values.thickness) {
         row.querySelector('select[name="item_thickness"]').value = String(values.thickness);
       }
-      if (values.color) {
-        const radio = row.querySelector(`input[data-role="item-color"][value="${values.color}"]`);
-        if (radio) {
-          radio.checked = true;
-        }
-      }
+      row.querySelector('input[name="item_color"]').value = cleanColorName(values.color || "Branco TX");
+      row.querySelector('input[name="edge_band_color"]').value = String(values.edgeBandColor || "").trim();
+      normalizeEdgeSides(values.edgeSides).forEach((side) => {
+        const checkbox = row.querySelector(`input[data-role="edge-side"][value="${side}"]`);
+        if (checkbox) checkbox.checked = true;
+      });
     }
     itemsEl.appendChild(row);
-    syncColorPreview(row);
+    updateEdgeSideSummary(row);
     updateLabels();
-  }
-
-  function rebuildRowColorPalette(row) {
-    colorGroupId += 1;
-    const groupName = "item_color_" + colorGroupId;
-    const picker = row.querySelector('[data-role="color-picker"]');
-    if (!picker) return;
-    const current = row.querySelector('input[data-role="item-color"]:checked')?.value;
-    const replacement = document.createElement("div");
-    replacement.innerHTML = buildColorPalette(groupName, current || "Branco TX");
-    const nextPicker = replacement.firstChild;
-    picker.replaceWith(nextPicker);
-    syncColorPreview(row);
-  }
-
-  function refreshAllRowPalettes() {
-    Array.from(itemsEl.querySelectorAll(".item-row")).forEach((row) => {
-      rebuildRowColorPalette(row);
-    });
   }
 
   function clearRows() {
@@ -371,8 +407,9 @@
       const quantity = Number(row.querySelector('input[name="item_qty"]').value || 0);
       const canRotate = row.querySelector(".rotate-toggle").checked;
       const thickness = row.querySelector('select[name="item_thickness"]').value;
-      const colorInput = row.querySelector('input[data-role="item-color"]:checked');
-      const color = colorInput ? colorInput.value : "Branco TX";
+      const color = cleanColorName(row.querySelector('input[name="item_color"]').value);
+      const edgeBandColor = String(row.querySelector('input[name="edge_band_color"]').value || "").trim();
+      const edgeSides = Array.from(row.querySelectorAll('input[data-role="edge-side"]:checked')).map((input) => input.value);
       if (width > 0 && height > 0 && quantity > 0) {
         items.push({
           label: customLabel || labelForIndex(idx),
@@ -382,6 +419,8 @@
           canRotate: canRotate,
           thickness: thickness,
           color: color,
+          edgeBandColor: edgeBandColor,
+          edgeSides: normalizeEdgeSides(edgeSides),
           brand: state.selectedBrand,
         });
       }
@@ -390,16 +429,11 @@
   }
 
   function findPaletteByName(name, brand) {
-    return getColorByName(name, brand) || getCurrentPalette()[0] || { name: "Sem cor", url: "" };
-  }
-
-  function syncColorPreview(row, selectedColorName) {
-    const colorInput = row.querySelector('input[data-role="item-color"]:checked');
-    const preview = row.querySelector('[data-role="color-preview"]');
-    if (!preview) return;
-    const colorName = selectedColorName || (colorInput ? colorInput.value : "Branco TX");
-    const color = findPaletteByName(colorName, state.selectedBrand);
-    preview.style.backgroundImage = "url(" + color.url + ")";
+    return getColorByName(name, brand) || {
+      name: cleanColorName(name),
+      url: "",
+      panelPrice: DEFAULTS.panelCost,
+    };
   }
 
   function expandItems(items) {
@@ -410,9 +444,11 @@
           width: item.width,
           height: item.height,
           canRotate: item.canRotate,
-          label: item.label + i,
+          label: item.quantity > 1 ? item.label + " " + i : item.label,
           thickness: item.thickness,
           color: item.color,
+          edgeBandColor: item.edgeBandColor,
+          edgeSides: normalizeEdgeSides(item.edgeSides),
           brand: item.brand || state.selectedBrand,
         });
       }
@@ -539,6 +575,9 @@
       label: item.label + (chosen.rotated ? " (r)" : ""),
       thickness: item.thickness,
       color: item.color,
+      edgeBandColor: item.edgeBandColor,
+      edgeSides: chosen.rotated ? rotateEdgeSides(item.edgeSides) : normalizeEdgeSides(item.edgeSides),
+      rotated: chosen.rotated,
       brand: item.brand || state.selectedBrand,
     });
 
@@ -593,8 +632,8 @@
     const expanded = expandItems(items);
     const grouped = expanded.reduce((acc, item) => {
       const brand = normalizeBrand(item.brand || state.selectedBrand);
-      const color = item.color || "Branco TX";
-      const key = brand + "::" + color;
+      const color = cleanColorName(item.color);
+      const key = brand + "::" + normalizeColorKey(color);
       if (!acc[key]) acc[key] = { brand: brand, color: color, items: [] };
       acc[key].items.push(item);
       return acc;
@@ -627,13 +666,10 @@
     });
 
     const totalPanels = Math.max(1, layouts.length);
-    let totalCuts = Math.max(1, placedCount * 2);
+    const totalCuts = placedCount ? Math.max(4, placedCount * 2 + Math.max(0, placedCount - 1)) : 0;
     let cutCostTotal = 0;
 
     if (settings.cutMode === "router") {
-      const extraCuts = Math.max(0, placedCount - 1);
-      totalCuts = Math.max(4, placedCount * 2 + extraCuts);
-      cutCostTotal = 0;
       layouts.forEach((layout) => {
         layout.items.forEach((item) => {
           const thickness = String(item.thickness || "6");
@@ -645,21 +681,40 @@
         });
       });
     } else {
-      const extraCuts = Math.max(0, placedCount - 1);
-      totalCuts = Math.max(4, placedCount * 2 + extraCuts);
       cutCostTotal = totalCuts * settings.cutCostSaw;
     }
+
+    let edgeBandLengthMmTotal = 0;
+    let edgeBandSideCount = 0;
+    layouts.forEach((layout) => {
+      layout.items.forEach((item) => {
+        const sides = normalizeEdgeSides(item.edgeSides);
+        edgeBandSideCount += sides.length;
+        edgeBandLengthMmTotal += edgeBandLengthMm(item);
+      });
+    });
+    const edgeBandLengthM = edgeBandLengthMmTotal / 1000;
+    const edgeBandCostTotal = edgeBandLengthM * settings.edgeBandRate;
 
     let panelCostTotal = 0;
     layouts.forEach((layout) => {
       const colorInfo = findPaletteByName(layout.color, layout.brand);
       panelCostTotal += Number(colorInfo.panelPrice || settings.panelCost || 0);
     });
-    const totalCost = panelCostTotal + cutCostTotal;
+    const totalCost = panelCostTotal + cutCostTotal + edgeBandCostTotal;
     return {
       totalPanels: totalPanels,
       totalCuts: totalCuts,
       totalCost: totalCost,
+      panelCostTotal: panelCostTotal,
+      cutCostTotal: cutCostTotal,
+      edgeBandCostTotal: edgeBandCostTotal,
+      edgeBandLengthM: edgeBandLengthM,
+      edgeBandSideCount: edgeBandSideCount,
+      cutMode: settings.cutMode,
+      cutUnitPrice: settings.cutMode === "saw" ? settings.cutCostSaw : null,
+      edgeBandRate: settings.edgeBandRate,
+      edgeBandAllowance: settings.edgeBandAllowance,
       method: "custom-maxrects",
       layouts: layouts,
       raw: {
@@ -674,7 +729,9 @@
     return String(str)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 
   function dimFontSize(item) {
@@ -687,6 +744,30 @@
     const minSide = Math.min(item.width, item.height);
     const val = Math.round(minSide * 0.16);
     return Math.max(70, Math.min(160, val));
+  }
+
+  function renderEdgeBandLines(item, className) {
+    const x = Math.round(item.x);
+    const y = Math.round(item.y);
+    const x2 = Math.round(item.x + item.width);
+    const y2 = Math.round(item.y + item.height);
+    const coordinates = {
+      top: [x, y, x2, y],
+      right: [x2, y, x2, y2],
+      bottom: [x2, y2, x, y2],
+      left: [x, y2, x, y],
+    };
+    const color = edgeStrokeColor(item.edgeBandColor);
+    const baseClass = className || "edge-band-line";
+    return normalizeEdgeSides(item.edgeSides)
+      .map((side) => {
+        const line = coordinates[side];
+        return [
+          `<line class="${baseClass} edge-band-line-shadow" x1="${line[0]}" y1="${line[1]}" x2="${line[2]}" y2="${line[3]}"></line>`,
+          `<line class="${baseClass}" x1="${line[0]}" y1="${line[1]}" x2="${line[2]}" y2="${line[3]}" stroke="${color}"></line>`,
+        ].join("");
+      })
+      .join("");
   }
 
   function renderLayouts() {
@@ -703,6 +784,9 @@
       .map((layout, panelIndex) => {
         const patternId = "panelPattern" + panelIndex;
         const hatchId = "pieceHatch" + panelIndex;
+        const panelTexture = layout.colorUrl
+          ? `<image href="${esc(layout.colorUrl)}" x="0" y="0" width="180" height="180" preserveAspectRatio="xMidYMid slice"></image>`
+          : '<rect x="0" y="0" width="180" height="180" fill="#d8d1c7"></rect>';
         const itemsSvg = layout.items
           .map((item) => {
             const lf = labelFontSize(item);
@@ -710,11 +794,13 @@
             const cx = Math.round(item.x + item.width / 2);
             const cy = Math.round(item.y + item.height / 2);
             const tx = Math.round(item.x + df);
+            const edgeBandLines = renderEdgeBandLines(item);
             return [
               `<rect class="layout-item" x="${Math.round(item.x)}" y="${Math.round(item.y)}" width="${Math.round(item.width)}" height="${Math.round(item.height)}" fill="url(#${hatchId})"></rect>`,
+              edgeBandLines,
               `<text class="layout-label-text" x="${cx}" y="${cy}" style="font-size:${lf}px">${esc(item.label || "Item")}</text>`,
-              `<text class="layout-dim-text" x="${cx}" y="${Math.round(item.y + df)}" style="font-size:${df}px">${Math.round(item.width)}</text>`,
-              `<text class="layout-dim-text" x="${tx}" y="${cy}" transform="rotate(-90 ${tx} ${cy})" style="font-size:${df}px">${Math.round(item.height)}</text>`,
+              `<text class="layout-dim-text" x="${cx}" y="${Math.round(item.y + df)}" style="font-size:${df}px">${Math.round(item.width)} mm</text>`,
+              `<text class="layout-dim-text" x="${tx}" y="${cy}" transform="rotate(-90 ${tx} ${cy})" style="font-size:${df}px">${Math.round(item.height)} mm</text>`,
             ].join("");
           })
           .join("");
@@ -722,11 +808,11 @@
         return [
           `<div class="layout-card" data-panel-index="${panelIndex}">`,
           `<div class="layout-title">Painel ${panelIndex + 1} - ${esc(layout.brand || state.selectedBrand)} - ${esc(layout.color || "Branco TX")}</div>`,
-          `<div class="layout-meta">Medidas internas: ${Math.round(layout.width)} x ${Math.round(layout.height)} mm</div>`,
+          `<div class="layout-meta">Medidas internas: ${Math.round(layout.width)} x ${Math.round(layout.height)} mm${layout.items.some((item) => normalizeEdgeSides(item.edgeSides).length) ? " • linhas coloridas = fita de borda" : ""}</div>`,
           `<svg class="layout-svg" viewBox="0 0 ${Math.round(layout.width)} ${Math.round(layout.height)}" preserveAspectRatio="xMidYMid meet">`,
           `<defs>`,
           `<pattern id="${patternId}" patternUnits="userSpaceOnUse" width="180" height="180">`,
-          `<image href="${layout.colorUrl || ""}" x="0" y="0" width="180" height="180" preserveAspectRatio="xMidYMid slice"></image>`,
+          panelTexture,
           `</pattern>`,
           `<pattern id="${hatchId}" patternUnits="userSpaceOnUse" width="112" height="112">`,
           `<rect x="0" y="0" width="112" height="112" fill="transparent"></rect>`,
@@ -747,7 +833,12 @@
       result.layouts
         .map((layout, idx) => {
           const rows = layout.items
-            .map((item) => `<div class="panel-piece-row"><span>${esc(item.label)}</span><span>${Math.round(item.width)} x ${Math.round(item.height)}</span></div>`)
+            .map((item) => {
+              const edgeInfo = normalizeEdgeSides(item.edgeSides).length
+                ? `<small>Fita ${esc(item.edgeBandColor || "não informada")}: ${esc(edgeSideNames(item.edgeSides, true))}</small>`
+                : "";
+              return `<div class="panel-piece-row"><span>${esc(item.label)}${edgeInfo}</span><span>${Math.round(item.width)} x ${Math.round(item.height)} mm</span></div>`;
+            })
             .join("");
           return [
             '<div class="panel-list-group">',
@@ -768,14 +859,35 @@
     if (!result) {
       sumPanelsEl.textContent = "0";
       sumCutsEl.textContent = "0";
-      sumCostEl.textContent = "0.00";
+      sumCostEl.textContent = "0,00";
+      sumPanelCostEl.textContent = "0,00";
+      sumCutTypeEl.textContent = state.cutMode === "saw" ? "Seccionadora" : "Router";
+      sumCutUnitEl.textContent = "cortes";
+      sumCutCostEl.textContent = "0,00";
+      sumEdgeSidesEl.textContent = "0";
+      sumEdgeLengthEl.textContent = "0,00";
+      sumEdgeCostEl.textContent = "0,00";
       sumMethodEl.textContent = "custom-maxrects";
       return;
     }
     sumPanelsEl.textContent = String(result.totalPanels);
     sumCutsEl.textContent = String(result.totalCuts);
-    sumCostEl.textContent = Number(result.totalCost).toFixed(2);
-    sumMethodEl.textContent = result.method;
+    sumCostEl.textContent = formatDecimal(result.totalCost);
+    sumPanelCostEl.textContent = formatDecimal(result.panelCostTotal);
+    sumCutTypeEl.textContent = result.cutMode === "saw" ? "Seccionadora" : "Router";
+    sumCutUnitEl.textContent = result.cutMode === "saw" ? "cortes × R$ 3,50" : "cortes estimados";
+    sumCutCostEl.textContent = formatDecimal(result.cutCostTotal);
+    sumEdgeSidesEl.textContent = String(result.edgeBandSideCount);
+    sumEdgeLengthEl.textContent = formatDecimal(result.edgeBandLengthM);
+    sumEdgeCostEl.textContent = formatDecimal(result.edgeBandCostTotal);
+    sumMethodEl.textContent = result.method + " / " + (result.cutMode === "saw" ? "seccionadora" : "router");
+  }
+
+  function formatDecimal(value) {
+    return Number(value || 0).toLocaleString("pt-BR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
   }
 
   function setActivePanel(index) {
@@ -814,33 +926,6 @@
     return "PED" + now.slice(-8) + randomPart;
   }
 
-  function mmToM(value) {
-    return (Number(value) / 1000).toFixed(3).replace(".", ",");
-  }
-
-  function buildOrderRows(layouts) {
-    const rows = [];
-    let idx = 1;
-    layouts.forEach((layout, panelIndex) => {
-      layout.items.forEach((item) => {
-        const code = "MDF" + String(idx).padStart(2, "0") + "WPS";
-        const rotated = String(item.label || "").includes("(r)") ? "1" : "0";
-        rows.push([
-          code,
-          "Peca " + (item.label || idx),
-          mmToM(item.width),
-          mmToM(item.height),
-          rotated,
-          "Cor: " + (item.color || "Branca"),
-          String(item.thickness || "6"),
-          "P" + String(panelIndex + 1),
-        ]);
-        idx += 1;
-      });
-    });
-    return rows;
-  }
-
   function generateGcodeForPanel(layout, panelIndex) {
     const lines = [];
     lines.push("G21 ; mm");
@@ -870,34 +955,226 @@
     return lines.join("\n");
   }
 
-  async function sendEmailByForm(subject, body) {
+  function setSheetColumns(worksheet, widths) {
+    worksheet["!cols"] = widths.map((width) => ({ wch: width }));
+  }
+
+  function buildQuoteWorkbook(order) {
+    if (!window.XLSX) {
+      throw new Error("Não foi possível carregar o gerador da planilha Excel. Recarregue a página e tente novamente.");
+    }
+
+    const workbook = window.XLSX.utils.book_new();
+    const generatedAt = new Date().toLocaleString("pt-BR");
+    const summaryRows = [
+      ["ORÇAMENTO G2 MÓVEIS PLANEJADOS"],
+      [],
+      ["Pedido", order.orderCode],
+      ["Data da solicitação", generatedAt],
+      ["Cliente", order.name],
+      ["Telefone", order.phone],
+      ["Link compartilhável", order.shareUrl],
+      ["Método de corte", state.result.cutMode === "saw" ? "Seccionadora" : "Router"],
+      ["Unidade de medida", "Milímetros (mm)"],
+      ["Painéis necessários", state.result.totalPanels],
+      ["Cortes estimados", state.result.totalCuts],
+      ["Peças posicionadas", state.result.raw.placedCount],
+      ["Peças não posicionadas", state.result.raw.unplacedCount],
+      ["Custo dos painéis (R$)", Number(state.result.panelCostTotal || 0)],
+      ["Custo do corte (R$)", Number(state.result.cutCostTotal || 0)],
+      ["Quantidade de lados com fita", state.result.edgeBandSideCount],
+      ["Fita para colagem, com acréscimos (m)", Number(state.result.edgeBandLengthM || 0)],
+      ["Custo da colagem da fita (R$)", Number(state.result.edgeBandCostTotal || 0)],
+      ["Valor estimado (R$)", Number(state.result.totalCost || 0)],
+    ];
+    const summarySheet = window.XLSX.utils.aoa_to_sheet(summaryRows);
+    summarySheet["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }];
+    setSheetColumns(summarySheet, [26, 95]);
+    window.XLSX.utils.book_append_sheet(workbook, summarySheet, "Resumo");
+
+    const panelRows = [[
+      "Painel",
+      "Marca",
+      "Cor",
+      "Largura (mm)",
+      "Altura (mm)",
+      "Quantidade de peças",
+      "Lados com fita",
+      "Fita para colagem (m)",
+    ]];
+    state.result.layouts.forEach((layout, panelIndex) => {
+      panelRows.push([
+        panelIndex + 1,
+        layout.brand || state.selectedBrand,
+        layout.color || "Sem cor",
+        Math.round(layout.width),
+        Math.round(layout.height),
+        layout.items.length,
+        layout.items.reduce((total, item) => total + normalizeEdgeSides(item.edgeSides).length, 0),
+        layout.items.reduce((total, item) => total + edgeBandLengthMm(item), 0) / 1000,
+      ]);
+    });
+    const panelsSheet = window.XLSX.utils.aoa_to_sheet(panelRows);
+    panelsSheet["!autofilter"] = { ref: panelsSheet["!ref"] };
+    setSheetColumns(panelsSheet, [10, 16, 26, 16, 16, 22, 18, 22]);
+    window.XLSX.utils.book_append_sheet(workbook, panelsSheet, "Painéis");
+
+    const templateRows = [[
+      "Painel",
+      "ID da peça",
+      "Marca",
+      "Cor",
+      "Espessura (mm)",
+      "X (mm)",
+      "Y (mm)",
+      "Largura (mm)",
+      "Altura (mm)",
+      "Rotacionada",
+      "Cor da fita de borda",
+      "Lados com fita",
+      "Fita para colagem (mm)",
+      "Custo da colagem (R$)",
+    ]];
+    state.result.layouts.forEach((layout, panelIndex) => {
+      layout.items.forEach((item) => {
+        templateRows.push([
+          panelIndex + 1,
+          String(item.label || "Item").replace(/\s*\(r\)$/, ""),
+          layout.brand || state.selectedBrand,
+          layout.color || "Sem cor",
+          Number(item.thickness || 0),
+          Math.round(item.x),
+          Math.round(item.y),
+          Math.round(item.width),
+          Math.round(item.height),
+          item.rotated ? "Sim" : "Não",
+          item.edgeBandColor || "",
+          edgeSideNames(item.edgeSides, false),
+          edgeBandLengthMm(item),
+          (edgeBandLengthMm(item) / 1000) * DEFAULTS.edgeBandRate,
+        ]);
+      });
+    });
+    const templateSheet = window.XLSX.utils.aoa_to_sheet(templateRows);
+    templateSheet["!autofilter"] = { ref: templateSheet["!ref"] };
+    setSheetColumns(templateSheet, [10, 28, 16, 26, 18, 12, 12, 16, 16, 14, 24, 38, 24, 24]);
+    window.XLSX.utils.book_append_sheet(workbook, templateSheet, "Gabarito");
+
+    const cutRows = [[
+      "Painel",
+      "ID da peça",
+      "Corte",
+      "Início X (mm)",
+      "Início Y (mm)",
+      "Fim X (mm)",
+      "Fim Y (mm)",
+      "Comprimento (mm)",
+    ]];
+    state.result.layouts.forEach((layout, panelIndex) => {
+      layout.items.forEach((item) => {
+        const label = String(item.label || "Item").replace(/\s*\(r\)$/, "");
+        const x = Math.round(item.x);
+        const y = Math.round(item.y);
+        const width = Math.round(item.width);
+        const height = Math.round(item.height);
+        [
+          ["Superior", x, y, x + width, y, width],
+          ["Direito", x + width, y, x + width, y + height, height],
+          ["Inferior", x + width, y + height, x, y + height, width],
+          ["Esquerdo", x, y + height, x, y, height],
+        ].forEach((cut) => {
+          cutRows.push([panelIndex + 1, label, ...cut]);
+        });
+      });
+    });
+    const cutsSheet = window.XLSX.utils.aoa_to_sheet(cutRows);
+    cutsSheet["!autofilter"] = { ref: cutsSheet["!ref"] };
+    setSheetColumns(cutsSheet, [10, 28, 14, 18, 18, 16, 16, 20]);
+    window.XLSX.utils.book_append_sheet(workbook, cutsSheet, "Cortes");
+
+    const edgeRows = [[
+      "Painel",
+      "ID da peça",
+      "Cor da fita",
+      "Lado",
+      "Medida da peça (mm)",
+      "Acréscimo (mm)",
+      "Comprimento cobrado (mm)",
+      "Valor por metro (R$)",
+      "Custo (R$)",
+    ]];
+    state.result.layouts.forEach((layout, panelIndex) => {
+      layout.items.forEach((item) => {
+        normalizeEdgeSides(item.edgeSides).forEach((sideKey) => {
+          const side = EDGE_SIDES.find((candidate) => candidate.key === sideKey);
+          const pieceLength = sideKey === "top" || sideKey === "bottom" ? Number(item.width) : Number(item.height);
+          const chargedLength = pieceLength + DEFAULTS.edgeBandAllowance;
+          edgeRows.push([
+            panelIndex + 1,
+            String(item.label || "Item").replace(/\s*\(r\)$/, ""),
+            item.edgeBandColor || "Não informada",
+            side.label,
+            Math.round(pieceLength),
+            DEFAULTS.edgeBandAllowance,
+            Math.round(chargedLength),
+            DEFAULTS.edgeBandRate,
+            (chargedLength / 1000) * DEFAULTS.edgeBandRate,
+          ]);
+        });
+      });
+    });
+    const edgeSheet = window.XLSX.utils.aoa_to_sheet(edgeRows);
+    edgeSheet["!autofilter"] = { ref: edgeSheet["!ref"] };
+    setSheetColumns(edgeSheet, [10, 28, 24, 16, 24, 18, 26, 22, 16]);
+    window.XLSX.utils.book_append_sheet(workbook, edgeSheet, "Fitas de borda");
+
+    const gcodeRows = [["Painel", "Cor", "Linha", "Comando"]];
+    state.result.layouts.forEach((layout, panelIndex) => {
+      generateGcodeForPanel(layout, panelIndex).split("\n").forEach((command, lineIndex) => {
+        gcodeRows.push([panelIndex + 1, layout.color || "Sem cor", lineIndex + 1, command]);
+      });
+    });
+    const gcodeSheet = window.XLSX.utils.aoa_to_sheet(gcodeRows);
+    gcodeSheet["!autofilter"] = { ref: gcodeSheet["!ref"] };
+    setSheetColumns(gcodeSheet, [10, 26, 10, 48]);
+    window.XLSX.utils.book_append_sheet(workbook, gcodeSheet, "G-code");
+
+    const output = window.XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+      compression: true,
+    });
+    return {
+      blob: new Blob([output], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      }),
+      filename: "orcamento-" + order.orderCode + ".xlsx",
+    };
+  }
+
+  async function sendEmailByForm(subject, body, attachment) {
     if (window.location.protocol === "file:") {
       throw new Error("FormSubmit exige pagina servida por servidor web.");
     }
 
-    const form = document.createElement("form");
-    form.method = "POST";
-    form.action = "https://formsubmit.co/ajax?token=6db5f26a7b24c72bbc9ed8175c334d8c";
-    form.target = "_blank";
+    const formData = new FormData();
+    formData.append("_subject", subject);
+    formData.append("_captcha", "false");
+    formData.append("_template", "table");
+    formData.append("destinatario", DEFAULTS.emailTo);
+    formData.append("mensagem", body);
+    formData.append("attachment", attachment.blob, attachment.filename);
 
-    const fields = {
-      _subject: subject,
-      _captcha: "false",
-      _template: "table",
-      mensagem: body,
-    };
-
-    Object.keys(fields).forEach((key) => {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = key;
-      input.value = fields[key];
-      form.appendChild(input);
+    const response = await fetch(DEFAULTS.emailEndpoint, {
+      method: "POST",
+      headers: { Accept: "application/json" },
+      body: formData,
     });
-
-    document.body.appendChild(form);
-    form.submit();
-    form.remove();
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.success === false || data.success === "false") {
+      throw new Error(data.message || "Não foi possível enviar a solicitação por e-mail.");
+    }
+    return data;
   }
 
   async function requestOrder() {
@@ -928,13 +1205,18 @@
       const header = "GCODE - Painel " + (idx + 1) + " - " + (layout.color || "Sem cor");
       return [header, generateGcodeForPanel(layout, idx)].join("\n");
     });
-    const cutLabel = state.cutMode === "router" ? "Router" : "Serra";
+    const cutLabel = state.cutMode === "saw" ? "Seccionadora" : "Router";
     const estimatedValue = Number(state.result.totalCost || 0).toFixed(2);
     const panelsList = state.result.layouts.map((layout, idx) => {
       const panelTitle = "Painel " + (idx + 1) + " - " + (layout.color || "Sem cor");
       const size = Math.round(layout.width) + " x " + Math.round(layout.height) + " mm";
       const items = layout.items
-        .map((item) => "  - " + (item.label || "Item") + " (" + Math.round(item.width) + " x " + Math.round(item.height) + ")")
+        .map((item) => {
+          const edgeInfo = normalizeEdgeSides(item.edgeSides).length
+            ? "; fita " + (item.edgeBandColor || "não informada") + " em " + edgeSideNames(item.edgeSides, false) + " (" + formatDecimal(edgeBandLengthMm(item) / 1000) + " m com acréscimos)"
+            : "; sem fita de borda";
+          return "  - " + (item.label || "Item") + " (" + Math.round(item.width) + " x " + Math.round(item.height) + " mm; esp. " + String(item.thickness || "6") + " mm" + edgeInfo + ")";
+        })
         .join("\n");
       return [panelTitle, "  Medidas: " + size, items].join("\n");
     }).join("\n\n");
@@ -946,7 +1228,16 @@
       "Telefone: " + phone,
       "Link: " + url.toString(),
       "Corte: " + cutLabel,
-      "Valor estimado: R$ " + estimatedValue,
+      "Painéis necessários: " + state.result.totalPanels,
+      "Cortes estimados: " + state.result.totalCuts,
+      "Peças posicionadas: " + state.result.raw.placedCount,
+      "Peças não posicionadas: " + state.result.raw.unplacedCount,
+      "Custo dos painéis: R$ " + formatDecimal(state.result.panelCostTotal),
+      "Custo do corte: R$ " + formatDecimal(state.result.cutCostTotal) + (state.cutMode === "saw" ? " (" + state.result.totalCuts + " cortes x R$ 3,50)" : ""),
+      "Fita de borda: " + state.result.edgeBandSideCount + " lados; " + formatDecimal(state.result.edgeBandLengthM) + " m com acréscimos; R$ " + formatDecimal(state.result.edgeBandCostTotal),
+      "Valor estimado: R$ " + formatDecimal(estimatedValue),
+      "Unidade de medida: milímetros (mm)",
+      "Planilha anexa: resumo, painéis, gabarito, cortes, fitas de borda e G-code.",
       "",
       "----- PAINEIS -----",
       panelsList,
@@ -958,26 +1249,96 @@
     const subject = name + " - " + orderCode;
 
     const requestBtn = document.getElementById("request-order-btn");
+    const confirmBtn = document.getElementById("order-confirm-send-btn");
+    const statusEl = document.getElementById("order-confirm-status");
     requestBtn.disabled = true;
+    if (confirmBtn) confirmBtn.disabled = true;
+    if (statusEl) {
+      statusEl.classList.remove("is-error", "is-success");
+      statusEl.textContent = "Gerando a planilha e enviando o e-mail…";
+    }
     try {
-      await sendEmailByForm(subject, emailBody);
-      alert("Pedido enviado por formulario.");
+      const attachment = buildQuoteWorkbook({
+        orderCode: orderCode,
+        name: name,
+        phone: phone,
+        shareUrl: url.toString(),
+      });
+      await sendEmailByForm(subject, emailBody, attachment);
+      if (statusEl) {
+        statusEl.classList.add("is-success");
+        statusEl.textContent = "Solicitação enviada com a planilha Excel em anexo.";
+      }
+      setTimeout(closeOrderConfirmation, 1600);
     } catch (error) {
-      const mailtoUrl =
-        "mailto:g2mplanejados@gmail.com" +
-        "?subject=" +
-        encodeURIComponent(subject) +
-        "&body=" +
-        encodeURIComponent(emailBody);
-      if (String(error.message || "").includes("FormSubmit exige")) {
-        window.location.href = mailtoUrl;
-        alert("Abrindo email. Para o FormSubmit funcionar, rode em servidor (GitHub Pages).");
-      } else {
-        alert(error.message || "Nao foi possivel enviar o formulario.");
+      if (statusEl) {
+        statusEl.classList.add("is-error");
+        statusEl.textContent = error.message || "Não foi possível enviar a solicitação.";
       }
     } finally {
       requestBtn.disabled = false;
+      if (confirmBtn) confirmBtn.disabled = false;
     }
+  }
+
+  function closeOrderConfirmation() {
+    const box = document.getElementById("order-confirm-box");
+    const overlay = document.getElementById("order-confirm-overlay");
+    const confirmBtn = document.getElementById("order-confirm-send-btn");
+    if (confirmBtn?.disabled) return;
+    if (box) box.hidden = true;
+    if (overlay) overlay.hidden = true;
+  }
+
+  function openOrderConfirmation() {
+    if (calcTimer) {
+      clearTimeout(calcTimer);
+      calcTimer = null;
+      calculate();
+    }
+    if (!state.result || !state.result.layouts.length) {
+      alert("Adicione ao menos uma placa válida antes de solicitar o orçamento.");
+      return;
+    }
+
+    const name = (document.getElementById("lead-name")?.value || "").trim();
+    const phone = (document.getElementById("lead-phone")?.value || "").trim();
+    if (!name || !phone) {
+      alert("Informe nome e telefone antes de solicitar o orçamento.");
+      return;
+    }
+    const missingEdgeColor = readItemsFromForm().some((item) => item.edgeSides.length && !item.edgeBandColor);
+    if (missingEdgeColor) {
+      alert("Informe a cor da fita de borda nas peças que possuem lados selecionados.");
+      return;
+    }
+
+    const shareUrl = updateUrlWithSharePayload();
+    const box = document.getElementById("order-confirm-box");
+    const overlay = document.getElementById("order-confirm-overlay");
+    const recipient = document.getElementById("order-confirm-recipient");
+    const summary = document.getElementById("order-confirm-summary");
+    const link = document.getElementById("order-confirm-link");
+    const status = document.getElementById("order-confirm-status");
+    if (recipient) recipient.textContent = DEFAULTS.emailTo;
+    if (summary) {
+      summary.textContent =
+        state.result.totalPanels +
+        " painéis • " +
+        state.result.totalCuts +
+        " cortes • " +
+        formatDecimal(state.result.edgeBandLengthM) +
+        " m de fita • R$ " +
+        formatDecimal(state.result.totalCost);
+    }
+    if (link) link.value = shareUrl;
+    if (status) {
+      status.textContent = "O e-mail incluirá todas as informações do orçamento e o arquivo Excel.";
+      status.classList.remove("is-error", "is-success");
+    }
+    if (box) box.hidden = false;
+    if (overlay) overlay.hidden = false;
+    document.getElementById("order-confirm-send-btn")?.focus();
   }
 
   function base64UrlEncode(text) {
@@ -999,15 +1360,32 @@
       canRotate: item.canRotate,
       thickness: item.thickness,
       color: item.color,
+      edgeBandColor: item.edgeBandColor,
+      edgeSides: normalizeEdgeSides(item.edgeSides),
       brand: item.brand || state.selectedBrand,
     }));
-    return { brand: state.selectedBrand, items: items };
+    return {
+      brand: state.selectedBrand,
+      cutMode: state.cutMode,
+      lead: {
+        name: (document.getElementById("lead-name")?.value || "").trim(),
+        phone: (document.getElementById("lead-phone")?.value || "").trim(),
+      },
+      items: items,
+    };
   }
 
   function applySharePayload(payload) {
     if (!payload || !Array.isArray(payload.items)) return;
     state.selectedBrand = normalizeBrand(payload.brand || state.selectedBrand);
     if (brandSelectEl) brandSelectEl.value = state.selectedBrand;
+    state.cutMode = payload.cutMode === "saw" ? "saw" : "router";
+    const cutModeSelect = document.getElementById("cut-mode-select");
+    if (cutModeSelect) cutModeSelect.value = state.cutMode;
+    const leadName = document.getElementById("lead-name");
+    const leadPhone = document.getElementById("lead-phone");
+    if (leadName && payload.lead?.name) leadName.value = payload.lead.name;
+    if (leadPhone && payload.lead?.phone) leadPhone.value = payload.lead.phone;
     clearRows();
     payload.items.forEach((item) => {
       addRow({
@@ -1018,6 +1396,8 @@
         canRotate: item.canRotate !== false,
         thickness: item.thickness || 6,
         color: item.color || "Branco TX",
+        edgeBandColor: item.edgeBandColor || "",
+        edgeSides: normalizeEdgeSides(item.edgeSides),
       });
     });
   }
@@ -1145,6 +1525,28 @@
         rect.setAttribute("stroke-width", "2");
         svg.appendChild(rect);
 
+        const x = Math.round(item.x);
+        const y = Math.round(item.y);
+        const x2 = Math.round(item.x + item.width);
+        const y2 = Math.round(item.y + item.height);
+        const sideCoordinates = {
+          top: [x, y, x2, y],
+          right: [x2, y, x2, y2],
+          bottom: [x2, y2, x, y2],
+          left: [x, y2, x, y],
+        };
+        normalizeEdgeSides(item.edgeSides).forEach((side) => {
+          const lineCoords = sideCoordinates[side];
+          const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          line.setAttribute("x1", lineCoords[0]);
+          line.setAttribute("y1", lineCoords[1]);
+          line.setAttribute("x2", lineCoords[2]);
+          line.setAttribute("y2", lineCoords[3]);
+          line.setAttribute("stroke", edgeStrokeColor(item.edgeBandColor));
+          line.setAttribute("stroke-width", "12");
+          svg.appendChild(line);
+        });
+
         const cx = Math.round(item.x + item.width / 2);
         const cy = Math.round(item.y + item.height / 2);
 
@@ -1176,7 +1578,10 @@
         const label = item.label || "Item";
         const row = document.createElement("div");
         row.className = "legend-item";
-        row.textContent = label + " - " + Math.round(item.width) + " x " + Math.round(item.height);
+        const edgeInfo = normalizeEdgeSides(item.edgeSides).length
+          ? " | Fita " + (item.edgeBandColor || "não informada") + ": " + edgeSideNames(item.edgeSides, true)
+          : " | Sem fita";
+        row.textContent = label + " - " + Math.round(item.width) + " x " + Math.round(item.height) + " mm" + edgeInfo;
         legend.appendChild(row);
       });
       content.appendChild(legend);
@@ -1215,6 +1620,8 @@
       cutWidth: state.cutMode === "router" ? DEFAULTS.cutWidthRouter : DEFAULTS.cutWidthSaw,
       panelCost: DEFAULTS.panelCost,
       cutCostSaw: DEFAULTS.cutCostSaw,
+      edgeBandRate: DEFAULTS.edgeBandRate,
+      edgeBandAllowance: DEFAULTS.edgeBandAllowance,
       routerRate: DEFAULTS.routerRate,
       routerMax: DEFAULTS.routerMax,
       cutMode: state.cutMode,
@@ -1250,9 +1657,7 @@
     state.result = null;
     clearRows();
     addRow({ width: 1000, height: 1000, quantity: 1, canRotate: true, thickness: 6, color: "Branco TX" });
-    renderSummary();
-    renderLayouts();
-    applyOverlayState();
+    calculate();
   }
 
   document.getElementById("add-row-btn").addEventListener("click", function () {
@@ -1260,102 +1665,7 @@
     scheduleCalculate();
   });
 
-  const cutRouterBtn = document.getElementById("cut-router-btn");
-  if (cutRouterBtn) {
-    cutRouterBtn.addEventListener("click", function () {
-      state.cutMode = "router";
-      cutRouterBtn.classList.add("is-active");
-      scheduleCalculate();
-    });
-  }
-
-  let floatingPalette = null;
-
-  function isMobileViewport() {
-    return window.matchMedia("(max-width: 980px)").matches;
-  }
-
-  function ensureColorLayer() {
-    let layer = document.getElementById("color-popup-layer");
-    if (!layer) {
-      layer = document.createElement("div");
-      layer.id = "color-popup-layer";
-      document.body.appendChild(layer);
-    }
-    return layer;
-  }
-
-  function closeFloatingPalette() {
-    if (!floatingPalette) return;
-    const { picker, palette } = floatingPalette;
-    palette.classList.remove("is-floating");
-    palette.style.left = "";
-    palette.style.top = "";
-    palette.style.display = "";
-    picker.appendChild(palette);
-    floatingPalette = null;
-  }
-
-  function openFloatingPalette(picker) {
-    const toggle = picker.querySelector(".color-toggle");
-    const palette = picker.querySelector(".color-palette");
-    if (!toggle || !palette) return;
-
-    closeFloatingPalette();
-
-    const layer = ensureColorLayer();
-    layer.appendChild(palette);
-    palette.classList.add("is-floating");
-    palette.style.display = "grid";
-
-    requestAnimationFrame(() => {
-      const rect = toggle.getBoundingClientRect();
-      const pw = palette.offsetWidth || 130;
-      const ph = palette.offsetHeight || 130;
-      let left = rect.left;
-      left = Math.max(8, Math.min(left, window.innerWidth - pw - 8));
-
-      let top = rect.bottom + 6;
-      if (top + ph > window.innerHeight - 8) {
-        top = Math.max(8, rect.top - ph - 6);
-      }
-
-      palette.style.left = left + "px";
-      palette.style.top = top + "px";
-    });
-
-    floatingPalette = { picker, palette };
-  }
-
-  function closeAllColorPickers() {
-    document.querySelectorAll('[data-role="color-picker"].is-open').forEach((picker) => {
-      picker.classList.remove("is-open");
-    });
-    closeFloatingPalette();
-  }
-
   itemsEl.addEventListener("click", function (event) {
-    const toggle = event.target.closest(".color-toggle");
-    if (toggle) {
-      const picker = toggle.closest('[data-role="color-picker"]');
-      if (picker) {
-        const isOpen = picker.classList.toggle("is-open");
-        if (isOpen) {
-          document.querySelectorAll('[data-role="color-picker"].is-open').forEach((openPicker) => {
-            if (openPicker !== picker) openPicker.classList.remove("is-open");
-          });
-          if (isMobileViewport()) {
-            openFloatingPalette(picker);
-          } else {
-            closeFloatingPalette();
-          }
-        } else {
-          closeFloatingPalette();
-        }
-      }
-      return;
-    }
-
     const button = event.target.closest(".remove-row");
     if (!button) return;
     const row = button.closest(".item-row");
@@ -1367,27 +1677,21 @@
     } else {
       row.querySelectorAll("input").forEach((input) => {
         if (input.type === "checkbox") {
-          input.checked = true;
+          input.checked = input.classList.contains("rotate-toggle");
         } else {
           input.value = "";
         }
       });
+      updateEdgeSideSummary(row);
       scheduleCalculate();
     }
   });
 
-  function handleColorOrRowChange(event) {
-    const input = event.target.closest('input[data-role="item-color"]');
-    if (input) {
-      let picker = input.closest('[data-role="color-picker"]');
-      if (!picker && floatingPalette && floatingPalette.palette.contains(input)) {
-        picker = floatingPalette.picker;
-      }
-      const row = picker ? picker.closest(".item-row") : null;
-      if (!row) return;
-      syncColorPreview(row, input.value);
-      if (picker) picker.classList.remove("is-open");
-      closeFloatingPalette();
+  function handleRowChange(event) {
+    const edgeSide = event.target.closest('input[data-role="edge-side"]');
+    if (edgeSide) {
+      const row = edgeSide.closest(".item-row");
+      if (row) updateEdgeSideSummary(row);
       scheduleCalculate();
       return;
     }
@@ -1397,10 +1701,10 @@
     }
   }
 
-  document.addEventListener("change", handleColorOrRowChange);
+  itemsEl.addEventListener("change", handleRowChange);
 
   itemsEl.addEventListener("input", function (event) {
-    const input = event.target.closest('input[name="item_label"], input[name="item_width"], input[name="item_height"], input[name="item_qty"]');
+    const input = event.target.closest('input[name="item_label"], input[name="item_width"], input[name="item_height"], input[name="item_qty"], input[name="item_color"], input[name="edge_band_color"]');
     if (!input) return;
 
     if (input.name === "item_width" || input.name === "item_height") {
@@ -1409,20 +1713,6 @@
     }
 
     scheduleCalculate();
-  });
-
-  document.addEventListener("click", function (event) {
-    if (event.target.closest('[data-role="color-picker"]') || event.target.closest("#color-popup-layer")) return;
-    closeAllColorPickers();
-  });
-
-  window.addEventListener("resize", function () {
-    if (!floatingPalette) return;
-    if (!isMobileViewport()) {
-      closeAllColorPickers();
-      return;
-    }
-    openFloatingPalette(floatingPalette.picker);
   });
 
   panelListEl.addEventListener("click", function (event) {
@@ -1442,15 +1732,31 @@
     calcButton.addEventListener("click", calculate);
   }
   document.getElementById("request-order-btn").addEventListener("click", function () {
-    requestOrder();
+    openOrderConfirmation();
   });
+  document.getElementById("order-confirm-send-btn")?.addEventListener("click", requestOrder);
+  document.getElementById("order-confirm-cancel-btn")?.addEventListener("click", closeOrderConfirmation);
+  document.getElementById("order-confirm-close-btn")?.addEventListener("click", closeOrderConfirmation);
+  document.getElementById("order-confirm-overlay")?.addEventListener("click", closeOrderConfirmation);
   document.getElementById("share-link-btn").addEventListener("click", generateShareLink);
   document.getElementById("print-panels-btn").addEventListener("click", printPanels);
+
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") closeOrderConfirmation();
+  });
 
   if (brandSelectEl) {
     brandSelectEl.addEventListener("change", function () {
       state.selectedBrand = normalizeBrand(brandSelectEl.value);
-      refreshAllRowPalettes();
+      populateColorNameOptions();
+      scheduleCalculate();
+    });
+  }
+
+  const cutModeSelectEl = document.getElementById("cut-mode-select");
+  if (cutModeSelectEl) {
+    cutModeSelectEl.addEventListener("change", function () {
+      state.cutMode = cutModeSelectEl.value === "saw" ? "saw" : "router";
       scheduleCalculate();
     });
   }
@@ -1463,10 +1769,10 @@
       console.warn("Usando catalogo local (fallback).", error);
     }
     loadFromHash();
+    populateColorNameOptions();
     if (!itemsEl.children.length) {
       resetProject();
     } else {
-      refreshAllRowPalettes();
       calculate();
     }
   }

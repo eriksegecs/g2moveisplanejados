@@ -1,6 +1,6 @@
-# Landing Frontend (GitHub Pages)
+# G2 Móveis Planejados — orçamento e plano de corte
 
-Esta pasta contem uma versao 100% frontend da tela de orcamento (`quote2`), sem Flask/backend.
+Aplicação 100% frontend para orçamento, plano de corte e fita de borda, sem Flask/backend.
 
 ## Arquivos
 - `index.html`
@@ -10,14 +10,32 @@ Esta pasta contem uma versao 100% frontend da tela de orcamento (`quote2`), sem 
 ## Como publicar no GitHub Pages
 1. Suba esta pasta para um repositorio (na raiz ou em uma branch `gh-pages`).
 2. No GitHub: `Settings > Pages`.
-3. Selecione a branch/pasta que contem `landing/index.html`.
+3. Selecione a branch/pasta que contém o arquivo `index.html`.
 4. Publique.
 
-## Personalizacao rapida
-No arquivo `landing/app.js`, altere:
-- `DEFAULTS.whatsappNumber`
-- `DEFAULTS.emailTo`
-- custos e medidas padrao em `DEFAULTS`.
+## Funcionamento do orçamento
+
+- O layout é recalculado automaticamente a cada alteração.
+- As peças são separadas em painéis diferentes conforme o nome da cor digitado.
+- O tipo de corte pode ser `Router` ou `Seccionadora`.
+- Na seccionadora, cada corte custa R$ 3,50.
+- A colagem da fita de borda custa R$ 2,00 por metro, com acréscimo de 50 mm em cada lado selecionado.
+- Os lados com fita aparecem no plano de corte, no gabarito lateral, na impressão, no e-mail e na planilha Excel.
+
+## Solicitação por e-mail
+
+O botão `Solicitar orçamento` abre uma confirmação e envia para `dreikyy@gmail.com`:
+
+- dados do cliente e resumo completo dos custos;
+- link compartilhável da configuração;
+- painéis, peças, medidas, cores, fitas de borda e G-code;
+- anexo `.xlsx` com as abas `Resumo`, `Painéis`, `Gabarito`, `Cortes`, `Fitas de borda` e `G-code`.
+
+O envio usa o FormSubmit. No primeiro uso para esse destinatário, o FormSubmit envia uma mensagem de ativação para `dreikyy@gmail.com`; é necessário confirmar essa mensagem uma única vez. A planilha é gerada no navegador com SheetJS 0.20.3.
+
+## Personalização rápida
+
+No arquivo `app.js`, altere os valores de medidas, custos e destinatário no objeto `DEFAULTS`.
 
 ## Planilha compartilhada de cores/precos
 1. Crie uma planilha no Google Sheets chamada `Catalogo MDF`.
@@ -41,8 +59,8 @@ Validação do catálogo (antes de publicar):
 - `node scripts/validar-catalogo.js catalogo-cores-base.csv`
 - ou: `node scripts/validar-catalogo.js seu-arquivo.csv`
 
-## Observacao
-- O seletor de marca no site atualiza automaticamente as cores e os precos com base na planilha.
-- O botao "Solicitar Orcamento" envia o e-mail via FormSubmit com o link da configuracao e o G-code no corpo.
-- Se aberto localmente (`file://`), o sistema cai para `mailto:` automaticamente.
-- Em GitHub Pages, o envio e feito via `POST` para o FormSubmit (abre em nova aba).
+## Observações
+
+- O seletor de marca mantém as sugestões e os preços cadastrados, mas a cor da peça é sempre um campo de texto livre.
+- Cores digitadas com diferenças apenas de maiúsculas, espaços ou acentos são agrupadas no mesmo painel.
+- O envio com anexo exige que a página esteja servida por HTTP/HTTPS; não funciona aberta diretamente por `file://`.
