@@ -24,14 +24,14 @@ Aplicação 100% frontend para orçamento, plano de corte e fita de borda, sem F
 
 ## Solicitação por e-mail
 
-O botão `Solicitar orçamento` abre uma confirmação e envia para `dreikyy@gmail.com`:
+O botão `Solicitar orçamento` abre uma confirmação e envia para `g2mplanejados@gmail.com`:
 
 - dados do cliente e resumo completo dos custos;
 - link compartilhável da configuração;
 - painéis, peças, medidas, cores, fitas de borda e G-code;
 - anexo `.xlsx` com as abas `Resumo`, `Painéis`, `Gabarito`, `Cortes`, `Fitas de borda` e `G-code`.
 
-O envio usa o FormSubmit. No primeiro uso para esse destinatário, o FormSubmit envia uma mensagem de ativação para `dreikyy@gmail.com`; é necessário confirmar essa mensagem uma única vez. A planilha é gerada no navegador com SheetJS 0.20.3.
+O envio usa o FormSubmit. No primeiro uso para esse destinatário, o FormSubmit envia uma mensagem de ativação para `g2mplanejados@gmail.com`; é necessário confirmar essa mensagem uma única vez. A planilha é gerada no navegador com SheetJS 0.20.3.
 
 ## Personalização rápida
 
