@@ -10,6 +10,10 @@
     cutCostSaw: 3.5,
     edgeBandRate: 2,
     edgeBandAllowance: 50,
+    whiteTxPieceRate: {
+      "6": 38,
+      "18": 58,
+    },
     routerRate: {
       "6": 30,
       "15": 30,
@@ -91,7 +95,10 @@
   const sumCutsEl = document.getElementById("sum-cuts");
   const sumCostEl = document.getElementById("sum-cost");
   const sumMethodEl = document.getElementById("sum-method");
-  const sumPanelCostEl = document.getElementById("sum-panel-cost");
+  const sumPieceAreaEl = document.getElementById("sum-piece-area");
+  const sumPieceCostEl = document.getElementById("sum-piece-cost");
+  const materialConsultationEl = document.getElementById("material-consultation");
+  const sumTotalLabelEl = document.getElementById("sum-total-label");
   const sumCutTypeEl = document.getElementById("sum-cut-type");
   const sumCutUnitEl = document.getElementById("sum-cut-unit");
   const sumCutCostEl = document.getElementById("sum-cut-cost");
@@ -741,6 +748,12 @@
   function buildSawCutPlan(layout) {
     const panelWidth = Math.round(layout.width);
     const panelHeight = Math.round(layout.height);
+    const cleanupCuts = [
+      { type: "Limpeza lateral esquerda", startX: 0, startY: 0, endX: 0, endY: panelHeight, length: panelHeight },
+      { type: "Limpeza lateral direita", startX: panelWidth, startY: 0, endX: panelWidth, endY: panelHeight, length: panelHeight },
+      { type: "Limpeza superior", startX: 0, startY: 0, endX: panelWidth, endY: 0, length: panelWidth },
+      { type: "Limpeza inferior", startX: 0, startY: panelHeight, endX: panelWidth, endY: panelHeight, length: panelWidth },
+    ];
     const verticalCuts = new Map();
     const crossCuts = new Map();
 
@@ -808,9 +821,9 @@
       });
     }
 
-    return Array.from(verticalCuts.values())
+    return cleanupCuts.concat(Array.from(verticalCuts.values())
       .sort((a, b) => a.startX - b.startX)
-      .concat(Array.from(crossCuts.values()).sort((a, b) => a.startX - b.startX || a.startY - b.startY));
+      .concat(Array.from(crossCuts.values()).sort((a, b) => a.startX - b.startX || a.startY - b.startY)));
   }
 
   function estimateQuote(items, settings) {
@@ -884,17 +897,33 @@
     const edgeBandLengthM = edgeBandLengthMmTotal / 1000;
     const edgeBandCostTotal = edgeBandLengthM * settings.edgeBandRate;
 
-    let panelCostTotal = 0;
+    let whiteTxPieceAreaM2 = 0;
+    let whiteTxPieceCostTotal = 0;
+    const materialConsultations = new Set();
     layouts.forEach((layout) => {
-      const colorInfo = findPaletteByName(layout.color, layout.brand);
-      panelCostTotal += Number(colorInfo.panelPrice || settings.panelCost || 0);
+      const thickness = String(layout.thickness || "6");
+      const isWhiteTx = normalizeColorKey(layout.color) === normalizeColorKey("Branco TX");
+      const rate = isWhiteTx ? Number(settings.whiteTxPieceRate[thickness] || 0) : 0;
+      if (!rate) {
+        materialConsultations.add((layout.color || "Sem cor") + " " + thickness + " mm");
+        return;
+      }
+      layout.items.forEach((item) => {
+        const areaM2 = (Number(item.width) * Number(item.height)) / 1_000_000;
+        whiteTxPieceAreaM2 += areaM2;
+        whiteTxPieceCostTotal += areaM2 * rate;
+      });
     });
-    const totalCost = panelCostTotal + cutCostTotal + edgeBandCostTotal;
+    const totalCost = whiteTxPieceCostTotal + cutCostTotal + edgeBandCostTotal;
     return {
       totalPanels: totalPanels,
       totalCuts: totalCuts,
       totalCost: totalCost,
-      panelCostTotal: panelCostTotal,
+      whiteTxPieceAreaM2: whiteTxPieceAreaM2,
+      whiteTxPieceCostTotal: whiteTxPieceCostTotal,
+      whiteTxPieceRate: settings.whiteTxPieceRate,
+      materialConsultationRequired: materialConsultations.size > 0,
+      materialConsultationLabels: Array.from(materialConsultations),
       cutCostTotal: cutCostTotal,
       edgeBandCostTotal: edgeBandCostTotal,
       edgeBandLengthM: edgeBandLengthM,
@@ -1066,7 +1095,11 @@
       sumPanelsEl.textContent = "0";
       sumCutsEl.textContent = "0";
       sumCostEl.textContent = "0,00";
-      sumPanelCostEl.textContent = "0,00";
+      sumPieceAreaEl.textContent = "0,00";
+      sumPieceCostEl.textContent = "0,00";
+      sumTotalLabelEl.textContent = "Valor estimado:";
+      materialConsultationEl.textContent = "Para chapas diferentes de Branco TX, consulte o valor.";
+      materialConsultationEl.classList.remove("is-active");
       sumCutTypeEl.textContent = state.cutMode === "saw" ? "Seccionadora" : "Router";
       sumCutUnitEl.textContent = "cortes";
       sumCutCostEl.textContent = "0,00";
@@ -1079,10 +1112,16 @@
     sumPanelsEl.textContent = String(result.totalPanels);
     sumCutsEl.textContent = String(result.totalCuts);
     sumCostEl.textContent = formatDecimal(result.totalCost);
-    sumPanelCostEl.textContent = formatDecimal(result.panelCostTotal);
+    sumPieceAreaEl.textContent = formatDecimal(result.whiteTxPieceAreaM2);
+    sumPieceCostEl.textContent = formatDecimal(result.whiteTxPieceCostTotal);
+    sumTotalLabelEl.textContent = result.materialConsultationRequired ? "Subtotal estimado:" : "Valor estimado:";
+    materialConsultationEl.textContent = result.materialConsultationRequired
+      ? "Valor da chapa sob consulta: " + result.materialConsultationLabels.join(", ") + ". O subtotal não inclui esses materiais."
+      : "Para chapas diferentes de Branco TX, consulte o valor.";
+    materialConsultationEl.classList.toggle("is-active", result.materialConsultationRequired);
     sumCutTypeEl.textContent = result.cutMode === "saw" ? "Seccionadora" : "Router";
     sumCutUnitEl.textContent = result.cutMode === "saw"
-      ? "operações únicas × R$ 3,50"
+      ? "operações (inclui 4 limpezas/chapa) × R$ 3,50"
       : "trajetórias (4 lados por peça) • R$ " + formatDecimal(result.routerRatePerM2) + "/m²";
     sumCutCostEl.textContent = formatDecimal(result.cutCostTotal);
     sumEdgeSidesEl.textContent = String(result.edgeBandSideCount);
@@ -1173,7 +1212,7 @@
     const workbook = window.XLSX.utils.book_new();
     const generatedAt = new Date().toLocaleString("pt-BR");
     const summaryRows = [
-      ["ORÇAMENTO G2 MÓVEIS PLANEJADOS"],
+      ["ORÇAMENTO VORTEX MDF"],
       [],
       ["Pedido", order.orderCode],
       ["Data da solicitação", generatedAt],
@@ -1184,19 +1223,24 @@
       ["Unidade de medida", "Milímetros (mm)"],
       ["Painéis necessários", state.result.totalPanels],
       [state.result.cutMode === "saw" ? "Operações únicas de corte" : "Trajetórias (4 lados por peça)", state.result.totalCuts],
+      ["Limpezas de borda por chapa", state.result.cutMode === "saw" ? 4 : "Não se aplica"],
       [state.result.cutMode === "saw" ? "Tarifa por corte (R$)" : "Tarifa Router (R$/m²)", state.result.cutMode === "saw" ? Number(state.result.cutUnitPrice || 0) : Number(state.result.routerRatePerM2 || 0)],
       ["Peças posicionadas", state.result.raw.placedCount],
       ["Peças não posicionadas", state.result.raw.unplacedCount],
-      ["Custo dos painéis (R$)", Number(state.result.panelCostTotal || 0)],
+      ["Área tarifada das peças Branco TX (m²)", Number(state.result.whiteTxPieceAreaM2 || 0)],
+      ["Branco TX 6 mm (R$/m²)", Number(state.result.whiteTxPieceRate["6"] || 0)],
+      ["Branco TX 18 mm (R$/m²)", Number(state.result.whiteTxPieceRate["18"] || 0)],
+      ["Custo das peças Branco TX (R$)", Number(state.result.whiteTxPieceCostTotal || 0)],
+      ["Valor de chapa sob consulta", state.result.materialConsultationRequired ? state.result.materialConsultationLabels.join(", ") : "Não"],
       ["Custo do corte (R$)", Number(state.result.cutCostTotal || 0)],
       ["Quantidade de lados com fita", state.result.edgeBandSideCount],
       ["Fita para colagem, com acréscimos (m)", Number(state.result.edgeBandLengthM || 0)],
       ["Custo da colagem da fita (R$)", Number(state.result.edgeBandCostTotal || 0)],
-      ["Valor estimado (R$)", Number(state.result.totalCost || 0)],
+      [state.result.materialConsultationRequired ? "Subtotal estimado (R$)" : "Valor estimado (R$)", Number(state.result.totalCost || 0)],
     ];
     const summarySheet = window.XLSX.utils.aoa_to_sheet(summaryRows);
     summarySheet["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }];
-    setSheetColumns(summarySheet, [26, 95]);
+    setSheetColumns(summarySheet, [42, 95]);
     window.XLSX.utils.book_append_sheet(workbook, summarySheet, "Resumo");
 
     const panelRows = [[
@@ -1447,7 +1491,7 @@
     }).join("\n\n");
 
     const emailBody = [
-      "Solicitacao de orcamento",
+      "Solicitacao de orcamento - Vortex MDF",
       "Pedido: " + orderCode,
       "Nome: " + name,
       "Telefone: " + phone,
@@ -1457,10 +1501,11 @@
       (state.cutMode === "saw" ? "Operações únicas de corte: " : "Trajetórias (4 lados por peça): ") + state.result.totalCuts,
       "Peças posicionadas: " + state.result.raw.placedCount,
       "Peças não posicionadas: " + state.result.raw.unplacedCount,
-      "Custo dos painéis: R$ " + formatDecimal(state.result.panelCostTotal),
-      "Custo do corte: R$ " + formatDecimal(state.result.cutCostTotal) + (state.cutMode === "saw" ? " (" + state.result.totalCuts + " cortes x R$ 3,50)" : " (R$ " + formatDecimal(state.result.routerRatePerM2) + "/m²)"),
+      "Peças Branco TX: " + formatDecimal(state.result.whiteTxPieceAreaM2) + " m²; R$ " + formatDecimal(state.result.whiteTxPieceCostTotal) + " (6 mm: R$ 38,00/m²; 18 mm: R$ 58,00/m²)",
+      state.result.materialConsultationRequired ? "Valor da chapa sob consulta: " + state.result.materialConsultationLabels.join(", ") : "Chapas diferentes de Branco TX: consultar valor",
+      "Custo do corte: R$ " + formatDecimal(state.result.cutCostTotal) + (state.cutMode === "saw" ? " (" + state.result.totalCuts + " operações x R$ 3,50; inclui 4 limpezas por chapa)" : " (R$ " + formatDecimal(state.result.routerRatePerM2) + "/m²)"),
       "Fita de borda: " + state.result.edgeBandSideCount + " lados; " + formatDecimal(state.result.edgeBandLengthM) + " m com acréscimos; R$ " + formatDecimal(state.result.edgeBandCostTotal),
-      "Valor estimado: R$ " + formatDecimal(estimatedValue),
+      (state.result.materialConsultationRequired ? "Subtotal estimado: R$ " : "Valor estimado: R$ ") + formatDecimal(estimatedValue),
       "Unidade de medida: milímetros (mm)",
       "Planilha anexa: resumo, painéis, gabarito, cortes, fitas de borda e G-code.",
       "",
@@ -1554,7 +1599,8 @@
         (state.cutMode === "saw" ? " cortes únicos • " : " trajetórias • ") +
         formatDecimal(state.result.edgeBandLengthM) +
         " m de fita • R$ " +
-        formatDecimal(state.result.totalCost);
+        formatDecimal(state.result.totalCost) +
+        (state.result.materialConsultationRequired ? " + chapa sob consulta" : "");
     }
     if (link) link.value = shareUrl;
     if (status) {
@@ -1675,8 +1721,8 @@
       nativeBtn.onclick = async () => {
         try {
           await navigator.share({
-            title: "Configuracao de placas",
-            text: "Confira a configuracao das placas.",
+            title: "Vortex MDF — O corte exato do seu projeto.",
+            text: "Confira esta configuração de corte da Vortex MDF.",
             url: shareInput.value,
           });
         } catch (err) {
@@ -1710,7 +1756,7 @@
       const title = document.createElement("div");
       title.className = "print-title";
       title.textContent =
-        "Painel " +
+        "Vortex MDF | Painel " +
         (panelIndex + 1) +
         " - " +
         (layout.color || "Sem cor") +
@@ -1850,6 +1896,7 @@
       cutCostSaw: DEFAULTS.cutCostSaw,
       edgeBandRate: DEFAULTS.edgeBandRate,
       edgeBandAllowance: DEFAULTS.edgeBandAllowance,
+      whiteTxPieceRate: DEFAULTS.whiteTxPieceRate,
       routerRate: DEFAULTS.routerRate,
       routerMax: DEFAULTS.routerMax,
       cutMode: state.cutMode,

@@ -3,24 +3,26 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>G2 Móveis Planejados - Orçamento</title>
-  <meta name="description" content="Monte seu orçamento, plano de corte e fita de borda para móveis planejados.">
+  <title>Vortex MDF — O corte exato do seu projeto.</title>
+  <meta name="description" content="Vortex MDF: orçamento, plano de corte e fita de borda para o seu projeto.">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="G2 Móveis Planejados — Orçamento">
+  <meta property="og:title" content="Vortex MDF — O corte exato do seu projeto.">
   <meta property="og:description" content="Orçamento, plano de corte e cálculo de fita de borda em um só lugar.">
-  <meta property="og:image" content="https://eriksegecs.github.io/g2moveisplanejados/assets/og.png">
+  <meta property="og:image" content="https://eriksegecs.github.io/g2moveisplanejados/assets/og.png?v=vortex-20260901">
+  <meta property="og:image:alt" content="Vortex MDF — O corte exato do seu projeto.">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="G2 Móveis Planejados — Orçamento">
+  <meta name="twitter:title" content="Vortex MDF — O corte exato do seu projeto.">
   <meta name="twitter:description" content="Orçamento, plano de corte e cálculo de fita de borda em um só lugar.">
-  <meta name="twitter:image" content="https://eriksegecs.github.io/g2moveisplanejados/assets/og.png">
-  <link rel="stylesheet" href="./styles.css?v=abas-chapas-20260831">
+  <meta name="twitter:image" content="https://eriksegecs.github.io/g2moveisplanejados/assets/og.png?v=vortex-20260901">
+  <meta name="twitter:image:alt" content="Vortex MDF — O corte exato do seu projeto.">
+  <link rel="stylesheet" href="./styles.css?v=vortex-20260901">
 </head>
 <body>
   <main class="opcut-screen">
     <header class="opcut-toolbar">
-      <div class="opcut-brand">LAYOUT CUSTOMIZADO - g2moveisplanejados</div>
+      <div class="opcut-brand"><strong>Vortex MDF</strong><span>O corte exato do seu projeto.</span></div>
       <div class="opcut-actions">
         <button class="btn btn-share" id="share-link-btn" type="button">Compartilhar</button>
         <button class="btn btn-highlight" id="request-order-btn" type="button">Solicitar orçamento</button>
@@ -123,10 +125,12 @@
 
         <aside class="opcut-top">
           <div class="opcut-summary">
-            <div><strong>Painéis:</strong> <span id="sum-panels">0</span> — R$ <span id="sum-panel-cost">0,00</span></div>
+            <div><strong>Chapas necessárias:</strong> <span id="sum-panels">0</span> <span class="muted">(sem cobrança da chapa inteira)</span></div>
+            <div><strong>Peças Branco TX:</strong> <span id="sum-piece-area">0,00</span> m² — R$ <span id="sum-piece-cost">0,00</span><small class="summary-rate-note">6 mm: R$ 38,00/m² • 18 mm: R$ 58,00/m²</small></div>
             <div><strong>Corte (<span id="sum-cut-type">Router</span>):</strong> <span id="sum-cuts">0</span> <span id="sum-cut-unit">peças</span> — R$ <span id="sum-cut-cost">0,00</span></div>
             <div><strong>Fita de borda:</strong> <span id="sum-edge-sides">0</span> lados • <span id="sum-edge-length">0,00</span> m — R$ <span id="sum-edge-cost">0,00</span></div>
-            <div class="summary-total"><strong>Valor estimado:</strong> R$ <span id="sum-cost">0,00</span></div>
+            <div id="material-consultation" class="quote-notice">Para chapas diferentes de Branco TX, consulte o valor.</div>
+            <div class="summary-total"><strong id="sum-total-label">Valor estimado:</strong> R$ <span id="sum-cost">0,00</span></div>
             <div class="muted">Método: <span id="sum-method">custom-maxrects</span></div>
           </div>
 
@@ -153,6 +157,6 @@
 
   <div id="print-area" class="print-area" hidden></div>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-  <script src="./app.js?v=guilhotina-vertical-20260901"></script>
+  <script src="./app.js?v=vortex-precos-limpeza-20260901"></script>
 </body>
 </html>

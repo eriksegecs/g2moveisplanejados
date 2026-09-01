@@ -1,4 +1,4 @@
-# G2 Móveis Planejados — orçamento e plano de corte
+# Vortex MDF — O corte exato do seu projeto.
 
 Aplicação 100% frontend para orçamento, plano de corte e fita de borda, sem Flask/backend.
 
@@ -20,7 +20,9 @@ Aplicação 100% frontend para orçamento, plano de corte e fita de borda, sem F
 - As peças são separadas em painéis diferentes conforme a combinação de cor e espessura.
 - O tipo de corte pode ser `Router` ou `Seccionadora`.
 - Na Router, são consideradas quatro trajetórias por peça e o serviço custa R$ 30,00 por m² cortado, em todas as espessuras.
-- Na seccionadora, o layout organiza as peças em tiras verticais e prioriza o encaixe de outras peças na mesma tira. Cada corte vai até o fim da chapa ou da tira correspondente; uma operação já executada não é contada novamente. Cada novo corte custa R$ 3,50.
+- Na seccionadora, o layout organiza as peças em tiras verticais e prioriza o encaixe de outras peças na mesma tira. Cada corte vai até o fim da chapa ou da tira correspondente; uma operação já executada não é contada novamente. A limpeza das quatro bordas é contabilizada uma vez por chapa e cada operação custa R$ 3,50.
+- O orçamento não cobra o valor da chapa inteira. Para Branco TX, utiliza a área das peças: R$ 38,00/m² em 6 mm e R$ 58,00/m² em 18 mm.
+- Cores diferentes de Branco TX e espessuras sem tarifa cadastrada ficam marcadas como valor da chapa sob consulta.
 - A colagem da fita de borda custa R$ 2,00 por metro, com acréscimo de 50 mm em cada lado selecionado.
 - Os lados com fita aparecem no plano de corte, no gabarito lateral, na impressão, no e-mail e na planilha Excel.
 
