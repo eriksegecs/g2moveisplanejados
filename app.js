@@ -630,42 +630,183 @@
     };
   }
 
+  function packItemsVerticalStrips(items, panelWidth, panelHeight, cutWidth) {
+    const sorted = items.slice().sort((a, b) => {
+      const areaDifference = b.width * b.height - a.width * a.height;
+      if (areaDifference !== 0) return areaDifference;
+      return Math.max(b.width, b.height) - Math.max(a.width, a.height);
+    });
+    const panels = [];
+    const unplaced = [];
+
+    function addToStrip(panel, strip, item, orientation) {
+      const y = strip.items.length ? strip.usedHeight + cutWidth : 0;
+      const placedItem = {
+        x: strip.x,
+        y: y,
+        width: orientation.w,
+        height: orientation.h,
+        label: item.label + (orientation.rotated ? " (r)" : ""),
+        thickness: item.thickness,
+        color: item.color,
+        edgeBandColor: item.edgeBandColor,
+        edgeSides: orientation.rotated ? rotateEdgeSides(item.edgeSides) : normalizeEdgeSides(item.edgeSides),
+        rotated: orientation.rotated,
+        brand: item.brand || state.selectedBrand,
+      };
+      strip.items.push(placedItem);
+      strip.usedHeight = y + orientation.h;
+      panel.items.push(placedItem);
+    }
+
+    sorted.forEach((item) => {
+      let bestExistingStrip = null;
+      panels.forEach((panel, panelIndex) => {
+        panel.strips.forEach((strip, stripIndex) => {
+          orientations(item).forEach((orientation) => {
+            if (orientation.w !== strip.width) return;
+            const y = strip.items.length ? strip.usedHeight + cutWidth : 0;
+            if (y + orientation.h > panelHeight) return;
+            const score = [panelHeight - (y + orientation.h), panelIndex, stripIndex, orientation.rotated ? 1 : 0];
+            if (!bestExistingStrip || compareScore(score, bestExistingStrip.score) < 0) {
+              bestExistingStrip = { panel: panel, strip: strip, orientation: orientation, score: score };
+            }
+          });
+        });
+      });
+
+      if (bestExistingStrip) {
+        addToStrip(bestExistingStrip.panel, bestExistingStrip.strip, item, bestExistingStrip.orientation);
+        return;
+      }
+
+      let bestNewStrip = null;
+      panels.forEach((panel, panelIndex) => {
+        const x = panel.strips.length ? panel.usedWidth + cutWidth : 0;
+        orientations(item).forEach((orientation) => {
+          if (x + orientation.w > panelWidth || orientation.h > panelHeight) return;
+          const score = [panelWidth - (x + orientation.w), panelHeight - orientation.h, panelIndex, orientation.rotated ? 1 : 0];
+          if (!bestNewStrip || compareScore(score, bestNewStrip.score) < 0) {
+            bestNewStrip = { panel: panel, x: x, orientation: orientation, score: score };
+          }
+        });
+      });
+
+      if (!bestNewStrip) {
+        const panel = {
+          width: panelWidth,
+          height: panelHeight,
+          items: [],
+          strips: [],
+          usedWidth: 0,
+        };
+        let bestOrientation = null;
+        orientations(item).forEach((orientation) => {
+          if (orientation.w > panelWidth || orientation.h > panelHeight) return;
+          const score = [panelWidth - orientation.w, panelHeight - orientation.h, orientation.rotated ? 1 : 0];
+          if (!bestOrientation || compareScore(score, bestOrientation.score) < 0) {
+            bestOrientation = { orientation: orientation, score: score };
+          }
+        });
+        if (!bestOrientation) {
+          unplaced.push(item);
+          return;
+        }
+        panels.push(panel);
+        bestNewStrip = { panel: panel, x: 0, orientation: bestOrientation.orientation };
+      }
+
+      const strip = {
+        x: bestNewStrip.x,
+        width: bestNewStrip.orientation.w,
+        usedHeight: 0,
+        items: [],
+      };
+      bestNewStrip.panel.strips.push(strip);
+      bestNewStrip.panel.usedWidth = strip.x + strip.width;
+      addToStrip(bestNewStrip.panel, strip, item, bestNewStrip.orientation);
+    });
+
+    return {
+      layouts: panels.map((panel) => ({
+        width: panel.width,
+        height: panel.height,
+        items: panel.items,
+        strips: panel.strips,
+      })),
+      unplaced: unplaced,
+    };
+  }
+
   function buildSawCutPlan(layout) {
     const panelWidth = Math.round(layout.width);
     const panelHeight = Math.round(layout.height);
     const verticalCuts = new Map();
     const crossCuts = new Map();
 
-    layout.items.forEach((item) => {
-      const startX = Math.round(item.x);
-      const endX = Math.round(item.x + item.width);
-      const endY = Math.round(item.y + item.height);
-
-      if (endX < panelWidth && !verticalCuts.has(endX)) {
-        verticalCuts.set(endX, {
-          type: "Principal vertical",
-          startX: endX,
-          startY: 0,
-          endX: endX,
-          endY: panelHeight,
-          length: panelHeight,
-        });
-      }
-
-      if (endY < panelHeight) {
-        const key = [startX, endX, endY].join(":");
-        if (!crossCuts.has(key)) {
-          crossCuts.set(key, {
-            type: "Transversal da tira",
-            startX: startX,
-            startY: endY,
+    if (Array.isArray(layout.strips)) {
+      layout.strips.forEach((strip) => {
+        const startX = Math.round(strip.x);
+        const endX = Math.round(strip.x + strip.width);
+        if (endX < panelWidth && !verticalCuts.has(endX)) {
+          verticalCuts.set(endX, {
+            type: "Principal vertical",
+            startX: endX,
+            startY: 0,
             endX: endX,
-            endY: endY,
-            length: endX - startX,
+            endY: panelHeight,
+            length: panelHeight,
           });
         }
-      }
-    });
+        strip.items.forEach((item) => {
+          const endY = Math.round(item.y + item.height);
+          if (endY >= panelHeight) return;
+          const key = [startX, endX, endY].join(":");
+          if (!crossCuts.has(key)) {
+            crossCuts.set(key, {
+              type: "Transversal da tira",
+              startX: startX,
+              startY: endY,
+              endX: endX,
+              endY: endY,
+              length: endX - startX,
+            });
+          }
+        });
+      });
+    } else {
+
+      layout.items.forEach((item) => {
+        const startX = Math.round(item.x);
+        const endX = Math.round(item.x + item.width);
+        const endY = Math.round(item.y + item.height);
+
+        if (endX < panelWidth && !verticalCuts.has(endX)) {
+          verticalCuts.set(endX, {
+            type: "Principal vertical",
+            startX: endX,
+            startY: 0,
+            endX: endX,
+            endY: panelHeight,
+            length: panelHeight,
+          });
+        }
+
+        if (endY < panelHeight) {
+          const key = [startX, endX, endY].join(":");
+          if (!crossCuts.has(key)) {
+            crossCuts.set(key, {
+              type: "Transversal da tira",
+              startX: startX,
+              startY: endY,
+              endX: endX,
+              endY: endY,
+              length: endX - startX,
+            });
+          }
+        }
+      });
+    }
 
     return Array.from(verticalCuts.values())
       .sort((a, b) => a.startX - b.startX)
@@ -690,17 +831,15 @@
 
     Object.keys(grouped).forEach((groupKey) => {
       const group = grouped[groupKey];
-      const packed = packItemsMaxRects(
-        group.items,
-        settings.panelWidth,
-        settings.panelHeight,
-        settings.cutWidth
-      );
+      const packed = settings.cutMode === "saw"
+        ? packItemsVerticalStrips(group.items, settings.panelWidth, settings.panelHeight, settings.cutWidth)
+        : packItemsMaxRects(group.items, settings.panelWidth, settings.panelHeight, settings.cutWidth);
       packed.layouts.forEach((layout) => {
         layouts.push({
           width: layout.width,
           height: layout.height,
           items: layout.items,
+          strips: layout.strips || null,
           color: group.color,
           thickness: group.thickness,
           brand: group.brand,
@@ -712,7 +851,7 @@
     });
 
     const totalPanels = Math.max(1, layouts.length);
-    const sawCutPlans = layouts.map((layout) => buildSawCutPlan(layout));
+    const sawCutPlans = settings.cutMode === "saw" ? layouts.map((layout) => buildSawCutPlan(layout)) : [];
     const totalCuts = settings.cutMode === "saw"
       ? sawCutPlans.reduce((total, cuts) => total + cuts.length, 0)
       : placedCount * 4;
@@ -765,7 +904,7 @@
       routerRatePerM2: settings.cutMode === "router" ? settings.routerRate["6"] : null,
       edgeBandRate: settings.edgeBandRate,
       edgeBandAllowance: settings.edgeBandAllowance,
-      method: "custom-maxrects",
+      method: settings.cutMode === "saw" ? "guilhotina-vertical" : "custom-maxrects",
       layouts: layouts,
       sawCutPlans: sawCutPlans,
       raw: {
