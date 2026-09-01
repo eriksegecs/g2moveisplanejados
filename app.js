@@ -29,6 +29,7 @@
     result: null,
     cutMode: "router",
     selectedBrand: "arauco",
+    activePanelIndex: 0,
   };
 
   const COLOR_CATALOG_CSV_URL = "https://docs.google.com/spreadsheets/d/1FMgGYJK5SHGEz6x--SezD4Fcf92QENOzJHrFKFIucyE/edit?hl=pt-br&gid=0#gid=0";
@@ -83,6 +84,7 @@
   const itemsEl = document.getElementById("items");
   const layoutGridEl = document.getElementById("layout-grid");
   const layoutEmptyEl = document.getElementById("layout-empty");
+  const panelTabsEl = document.getElementById("panel-tabs");
   const panelListEl = document.getElementById("panel-list");
 
   const sumPanelsEl = document.getElementById("sum-panels");
@@ -628,6 +630,48 @@
     };
   }
 
+  function buildSawCutPlan(layout) {
+    const panelWidth = Math.round(layout.width);
+    const panelHeight = Math.round(layout.height);
+    const verticalCuts = new Map();
+    const crossCuts = new Map();
+
+    layout.items.forEach((item) => {
+      const startX = Math.round(item.x);
+      const endX = Math.round(item.x + item.width);
+      const endY = Math.round(item.y + item.height);
+
+      if (endX < panelWidth && !verticalCuts.has(endX)) {
+        verticalCuts.set(endX, {
+          type: "Principal vertical",
+          startX: endX,
+          startY: 0,
+          endX: endX,
+          endY: panelHeight,
+          length: panelHeight,
+        });
+      }
+
+      if (endY < panelHeight) {
+        const key = [startX, endX, endY].join(":");
+        if (!crossCuts.has(key)) {
+          crossCuts.set(key, {
+            type: "Transversal da tira",
+            startX: startX,
+            startY: endY,
+            endX: endX,
+            endY: endY,
+            length: endX - startX,
+          });
+        }
+      }
+    });
+
+    return Array.from(verticalCuts.values())
+      .sort((a, b) => a.startX - b.startX)
+      .concat(Array.from(crossCuts.values()).sort((a, b) => a.startX - b.startX || a.startY - b.startY));
+  }
+
   function estimateQuote(items, settings) {
     const expanded = expandItems(items);
     const grouped = expanded.reduce((acc, item) => {
@@ -668,7 +712,10 @@
     });
 
     const totalPanels = Math.max(1, layouts.length);
-    const totalCuts = placedCount * 4;
+    const sawCutPlans = layouts.map((layout) => buildSawCutPlan(layout));
+    const totalCuts = settings.cutMode === "saw"
+      ? sawCutPlans.reduce((total, cuts) => total + cuts.length, 0)
+      : placedCount * 4;
     let cutCostTotal = 0;
 
     if (settings.cutMode === "router") {
@@ -720,6 +767,7 @@
       edgeBandAllowance: settings.edgeBandAllowance,
       method: "custom-maxrects",
       layouts: layouts,
+      sawCutPlans: sawCutPlans,
       raw: {
         requestedCount: expanded.length,
         placedCount: placedCount,
@@ -777,14 +825,30 @@
     const result = state.result;
     if (!result || !result.layouts.length) {
       layoutGridEl.innerHTML = "";
+      panelTabsEl.innerHTML = "";
       layoutEmptyEl.style.display = "block";
       panelListEl.innerHTML = '<div class="panel-list-title">Painéis</div><div class="opcut-empty small">Nenhum painel calculado.</div>';
       return;
     }
 
     layoutEmptyEl.style.display = "none";
+    state.activePanelIndex = Math.min(state.activePanelIndex, result.layouts.length - 1);
+    const activePanelIndex = state.activePanelIndex;
+    panelTabsEl.innerHTML = result.layouts
+      .map((layout, panelIndex) => {
+        const isActive = panelIndex === activePanelIndex;
+        const panelCutCount = result.cutMode === "saw" ? result.sawCutPlans[panelIndex].length : layout.items.length * 4;
+        return [
+          `<button class="panel-tab${isActive ? " is-active" : ""}" id="panel-tab-${panelIndex}" type="button" role="tab" aria-selected="${isActive}" aria-controls="panel-layout-${panelIndex}" tabindex="${isActive ? "0" : "-1"}" data-panel-index="${panelIndex}">`,
+          `<span>Chapa ${panelIndex + 1}</span>`,
+          `<small>${esc(layout.color || "Branco TX")} • ${esc(layout.thickness || "6")} mm • ${panelCutCount} ${result.cutMode === "saw" ? "cortes" : "traj."}</small>`,
+          `</button>`,
+        ].join("");
+      })
+      .join("");
     layoutGridEl.innerHTML = result.layouts
       .map((layout, panelIndex) => {
+        const isActive = panelIndex === activePanelIndex;
         const patternId = "panelPattern" + panelIndex;
         const hatchId = "pieceHatch" + panelIndex;
         const panelTexture = layout.colorUrl
@@ -809,7 +873,7 @@
           .join("");
 
         return [
-          `<div class="layout-card" data-panel-index="${panelIndex}">`,
+          `<div class="layout-card${isActive ? " is-active" : ""}" id="panel-layout-${panelIndex}" role="tabpanel" aria-labelledby="panel-tab-${panelIndex}" data-panel-index="${panelIndex}"${isActive ? "" : " hidden"}>`,
           `<div class="layout-title">Painel ${panelIndex + 1} - ${esc(layout.brand || state.selectedBrand)} - ${esc(layout.color || "Branco TX")} - ${esc(layout.thickness || "6")} mm</div>`,
           `<div class="layout-meta">Medidas internas: ${Math.round(layout.width)} x ${Math.round(layout.height)} mm${layout.items.some((item) => normalizeEdgeSides(item.edgeSides).length) ? " • linhas coloridas = fita de borda" : ""}</div>`,
           `<svg class="layout-svg" viewBox="0 0 ${Math.round(layout.width)} ${Math.round(layout.height)}" preserveAspectRatio="xMidYMid meet">`,
@@ -845,7 +909,7 @@
             .join("");
           return [
             '<div class="panel-list-group">',
-            `<button class="panel-list-row" type="button" data-panel-index="${idx}">`,
+            `<button class="panel-list-row${idx === activePanelIndex ? " is-active" : ""}" type="button" data-panel-index="${idx}">`,
             `<span class="panel-list-label">Painel ${idx + 1} - ${esc(layout.brand || state.selectedBrand)} - ${esc(layout.color || "Branco TX")} - ${esc(layout.thickness || "6")} mm</span>`,
             `<span class="panel-list-size">${Math.round(layout.width)} x ${Math.round(layout.height)} mm</span>`,
             "</button>",
@@ -879,8 +943,8 @@
     sumPanelCostEl.textContent = formatDecimal(result.panelCostTotal);
     sumCutTypeEl.textContent = result.cutMode === "saw" ? "Seccionadora" : "Router";
     sumCutUnitEl.textContent = result.cutMode === "saw"
-      ? "cortes (4 por peça) × R$ 3,50"
-      : "cortes (4 por peça) • R$ " + formatDecimal(result.routerRatePerM2) + "/m²";
+      ? "operações únicas × R$ 3,50"
+      : "trajetórias (4 lados por peça) • R$ " + formatDecimal(result.routerRatePerM2) + "/m²";
     sumCutCostEl.textContent = formatDecimal(result.cutCostTotal);
     sumEdgeSidesEl.textContent = String(result.edgeBandSideCount);
     sumEdgeLengthEl.textContent = formatDecimal(result.edgeBandLengthM);
@@ -896,27 +960,25 @@
   }
 
   function setActivePanel(index) {
+    const parsedIndex = Number(index);
+    if (!state.result || !Number.isInteger(parsedIndex) || parsedIndex < 0 || parsedIndex >= state.result.layouts.length) return;
+    state.activePanelIndex = parsedIndex;
     const cards = layoutGridEl.querySelectorAll(".layout-card");
     const rows = panelListEl.querySelectorAll(".panel-list-row");
+    const tabs = panelTabsEl.querySelectorAll(".panel-tab");
     cards.forEach((card) => {
-      const active = card.dataset.panelIndex === String(index);
+      const active = card.dataset.panelIndex === String(parsedIndex);
+      card.hidden = !active;
       card.classList.toggle("is-active", active);
-      card.classList.toggle("is-muted", !active);
     });
     rows.forEach((row) => {
-      row.classList.toggle("is-active", row.dataset.panelIndex === String(index));
+      row.classList.toggle("is-active", row.dataset.panelIndex === String(parsedIndex));
     });
-  }
-
-  function clearActivePanel() {
-    const cards = layoutGridEl.querySelectorAll(".layout-card");
-    const rows = panelListEl.querySelectorAll(".panel-list-row");
-    cards.forEach((card) => {
-      card.classList.remove("is-active");
-      card.classList.remove("is-muted");
-    });
-    rows.forEach((row) => {
-      row.classList.remove("is-active");
+    tabs.forEach((tab) => {
+      const active = tab.dataset.panelIndex === String(parsedIndex);
+      tab.classList.toggle("is-active", active);
+      tab.setAttribute("aria-selected", String(active));
+      tab.tabIndex = active ? 0 : -1;
     });
   }
 
@@ -982,7 +1044,7 @@
       ["Método de corte", state.result.cutMode === "saw" ? "Seccionadora" : "Router"],
       ["Unidade de medida", "Milímetros (mm)"],
       ["Painéis necessários", state.result.totalPanels],
-      ["Cortes (4 por peça)", state.result.totalCuts],
+      [state.result.cutMode === "saw" ? "Operações únicas de corte" : "Trajetórias (4 lados por peça)", state.result.totalCuts],
       [state.result.cutMode === "saw" ? "Tarifa por corte (R$)" : "Tarifa Router (R$/m²)", state.result.cutMode === "saw" ? Number(state.result.cutUnitPrice || 0) : Number(state.result.routerRatePerM2 || 0)],
       ["Peças posicionadas", state.result.raw.placedCount],
       ["Peças não posicionadas", state.result.raw.unplacedCount],
@@ -1079,6 +1141,22 @@
       "Comprimento (mm)",
     ]];
     state.result.layouts.forEach((layout, panelIndex) => {
+      if (state.result.cutMode === "saw") {
+        state.result.sawCutPlans[panelIndex].forEach((cut) => {
+          cutRows.push([
+            panelIndex + 1,
+            "—",
+            cut.type,
+            cut.startX,
+            cut.startY,
+            cut.endX,
+            cut.endY,
+            cut.length,
+          ]);
+        });
+        return;
+      }
+
       layout.items.forEach((item) => {
         const label = String(item.label || "Item").replace(/\s*\(r\)$/, "");
         const x = Math.round(item.x);
@@ -1237,7 +1315,7 @@
       "Link: " + url.toString(),
       "Corte: " + cutLabel,
       "Painéis necessários: " + state.result.totalPanels,
-      "Cortes (4 por peça): " + state.result.totalCuts,
+      (state.cutMode === "saw" ? "Operações únicas de corte: " : "Trajetórias (4 lados por peça): ") + state.result.totalCuts,
       "Peças posicionadas: " + state.result.raw.placedCount,
       "Peças não posicionadas: " + state.result.raw.unplacedCount,
       "Custo dos painéis: R$ " + formatDecimal(state.result.panelCostTotal),
@@ -1334,7 +1412,7 @@
         state.result.totalPanels +
         " painéis • " +
         state.result.totalCuts +
-        " cortes • " +
+        (state.cutMode === "saw" ? " cortes únicos • " : " trajetórias • ") +
         formatDecimal(state.result.edgeBandLengthM) +
         " m de fita • R$ " +
         formatDecimal(state.result.totalCost);
@@ -1666,6 +1744,7 @@
 
   function resetProject() {
     state.result = null;
+    state.activePanelIndex = 0;
     clearRows();
     addRow({ width: 1000, height: 1000, quantity: 1, canRotate: true, thickness: 6, color: "Branco TX" });
     calculate();
@@ -1726,13 +1805,30 @@
     scheduleCalculate();
   });
 
+  panelTabsEl.addEventListener("click", function (event) {
+    const tab = event.target.closest(".panel-tab");
+    if (!tab) return;
+    setActivePanel(tab.dataset.panelIndex);
+  });
+
+  panelTabsEl.addEventListener("keydown", function (event) {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    const tabs = Array.from(panelTabsEl.querySelectorAll(".panel-tab"));
+    if (!tabs.length) return;
+    const currentIndex = tabs.findIndex((tab) => tab.getAttribute("aria-selected") === "true");
+    let nextIndex = currentIndex;
+    if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % tabs.length;
+    if (event.key === "Home") nextIndex = 0;
+    if (event.key === "End") nextIndex = tabs.length - 1;
+    event.preventDefault();
+    setActivePanel(tabs[nextIndex].dataset.panelIndex);
+    tabs[nextIndex].focus();
+  });
+
   panelListEl.addEventListener("click", function (event) {
     const row = event.target.closest(".panel-list-row");
     if (!row) return;
-    if (row.classList.contains("is-active")) {
-      clearActivePanel();
-      return;
-    }
     setActivePanel(row.dataset.panelIndex);
   });
 

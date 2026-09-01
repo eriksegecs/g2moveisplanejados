@@ -16,10 +16,11 @@ Aplicação 100% frontend para orçamento, plano de corte e fita de borda, sem F
 ## Funcionamento do orçamento
 
 - O layout é recalculado automaticamente a cada alteração.
+- As chapas calculadas são exibidas individualmente por abas, sem navegação lateral.
 - As peças são separadas em painéis diferentes conforme a combinação de cor e espessura.
 - O tipo de corte pode ser `Router` ou `Seccionadora`.
 - Na Router, são consideradas quatro trajetórias por peça e o serviço custa R$ 30,00 por m² cortado, em todas as espessuras.
-- Na seccionadora, são considerados quatro cortes por peça, a R$ 3,50 cada.
+- Na seccionadora, o cálculo considera primeiro os cortes verticais principais e depois os cortes transversais das tiras, sem duplicar uma operação já executada, a R$ 3,50 cada.
 - A colagem da fita de borda custa R$ 2,00 por metro, com acréscimo de 50 mm em cada lado selecionado.
 - Os lados com fita aparecem no plano de corte, no gabarito lateral, na impressão, no e-mail e na planilha Excel.
 
