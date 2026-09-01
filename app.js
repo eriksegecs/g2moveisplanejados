@@ -1343,6 +1343,18 @@
     };
   }
 
+  function downloadAttachment(attachment) {
+    const downloadUrl = URL.createObjectURL(attachment.blob);
+    const anchor = document.createElement("a");
+    anchor.href = downloadUrl;
+    anchor.download = attachment.filename;
+    anchor.hidden = true;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+  }
+
   function buildQuoteWorkbook(order) {
     if (!window.XLSX) {
       throw new Error("Não foi possível carregar o gerador da planilha Excel. Recarregue a página e tente novamente.");
@@ -1848,6 +1860,7 @@
     const shareClose = document.getElementById("share-close-btn");
     const shareInput = document.getElementById("share-link-input");
     const copyBtn = document.getElementById("copy-link-btn");
+    const downloadCsvBtn = document.getElementById("download-csv-btn");
     const nativeBtn = document.getElementById("share-native-btn");
     const hint = document.getElementById("share-hint");
 
@@ -1866,6 +1879,19 @@
 
     copyBtn.onclick = () => {
       tryCopy();
+    };
+
+    downloadCsvBtn.onclick = () => {
+      const payload = buildSharePayload();
+      const attachment = buildProductionCsv({
+        orderCode: buildOrderCode(),
+        name: payload.lead.name || "Cliente",
+        phone: payload.lead.phone || "",
+        shareUrl: shareInput.value,
+        items: payload.items,
+      });
+      downloadAttachment(attachment);
+      hint.textContent = "CSV da ordem de produção baixado.";
     };
 
     if (navigator.share) {

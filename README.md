@@ -16,6 +16,7 @@ Aplicação 100% frontend para orçamento, plano de corte e fita de borda, sem F
 ## Funcionamento do orçamento
 
 - A versão publicada aparece no rodapé no formato `AAAA.MM.DD.revisão`; esse identificador deve ser incrementado em cada nova publicação.
+- A janela `Compartilhar` permite copiar o link, usar o compartilhamento do dispositivo e baixar o CSV da ordem de produção com a configuração atual.
 - O layout é recalculado automaticamente a cada alteração.
 - As chapas calculadas são exibidas individualmente por abas, sem navegação lateral.
 - As peças são separadas em painéis diferentes conforme a combinação de cor e espessura.
