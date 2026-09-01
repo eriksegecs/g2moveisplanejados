@@ -16,9 +16,9 @@ Aplicação 100% frontend para orçamento, plano de corte e fita de borda, sem F
 ## Funcionamento do orçamento
 
 - O layout é recalculado automaticamente a cada alteração.
-- As peças são separadas em painéis diferentes conforme o nome da cor digitado.
+- As peças são separadas em painéis diferentes conforme a combinação de cor e espessura.
 - O tipo de corte pode ser `Router` ou `Seccionadora`.
-- Na seccionadora, cada corte custa R$ 3,50.
+- Na seccionadora, são considerados quatro cortes por peça, a R$ 3,50 cada.
 - A colagem da fita de borda custa R$ 2,00 por metro, com acréscimo de 50 mm em cada lado selecionado.
 - Os lados com fita aparecem no plano de corte, no gabarito lateral, na impressão, no e-mail e na planilha Excel.
 

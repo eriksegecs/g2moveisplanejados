@@ -633,8 +633,9 @@
     const grouped = expanded.reduce((acc, item) => {
       const brand = normalizeBrand(item.brand || state.selectedBrand);
       const color = cleanColorName(item.color);
-      const key = brand + "::" + normalizeColorKey(color);
-      if (!acc[key]) acc[key] = { brand: brand, color: color, items: [] };
+      const thickness = String(item.thickness || "6");
+      const key = brand + "::" + normalizeColorKey(color) + "::" + thickness;
+      if (!acc[key]) acc[key] = { brand: brand, color: color, thickness: thickness, items: [] };
       acc[key].items.push(item);
       return acc;
     }, {});
@@ -657,6 +658,7 @@
           height: layout.height,
           items: layout.items,
           color: group.color,
+          thickness: group.thickness,
           brand: group.brand,
           colorUrl: findPaletteByName(group.color, group.brand).url,
         });
@@ -666,7 +668,9 @@
     });
 
     const totalPanels = Math.max(1, layouts.length);
-    const totalCuts = placedCount ? Math.max(4, placedCount * 2 + Math.max(0, placedCount - 1)) : 0;
+    const totalCuts = settings.cutMode === "saw"
+      ? placedCount * 4
+      : (placedCount ? Math.max(4, placedCount * 2 + Math.max(0, placedCount - 1)) : 0);
     let cutCostTotal = 0;
 
     if (settings.cutMode === "router") {
@@ -775,7 +779,7 @@
     if (!result || !result.layouts.length) {
       layoutGridEl.innerHTML = "";
       layoutEmptyEl.style.display = "block";
-      panelListEl.innerHTML = '<div class="panel-list-title">Paineis</div><div class="opcut-empty small">Nenhum painel calculado.</div>';
+      panelListEl.innerHTML = '<div class="panel-list-title">Painéis</div><div class="opcut-empty small">Nenhum painel calculado.</div>';
       return;
     }
 
@@ -807,7 +811,7 @@
 
         return [
           `<div class="layout-card" data-panel-index="${panelIndex}">`,
-          `<div class="layout-title">Painel ${panelIndex + 1} - ${esc(layout.brand || state.selectedBrand)} - ${esc(layout.color || "Branco TX")}</div>`,
+          `<div class="layout-title">Painel ${panelIndex + 1} - ${esc(layout.brand || state.selectedBrand)} - ${esc(layout.color || "Branco TX")} - ${esc(layout.thickness || "6")} mm</div>`,
           `<div class="layout-meta">Medidas internas: ${Math.round(layout.width)} x ${Math.round(layout.height)} mm${layout.items.some((item) => normalizeEdgeSides(item.edgeSides).length) ? " • linhas coloridas = fita de borda" : ""}</div>`,
           `<svg class="layout-svg" viewBox="0 0 ${Math.round(layout.width)} ${Math.round(layout.height)}" preserveAspectRatio="xMidYMid meet">`,
           `<defs>`,
@@ -829,7 +833,7 @@
       .join("");
 
     panelListEl.innerHTML = [
-      '<div class="panel-list-title">Paineis</div>',
+      '<div class="panel-list-title">Painéis</div>',
       result.layouts
         .map((layout, idx) => {
           const rows = layout.items
@@ -843,7 +847,7 @@
           return [
             '<div class="panel-list-group">',
             `<button class="panel-list-row" type="button" data-panel-index="${idx}">`,
-            `<span class="panel-list-label">Painel ${idx + 1} - ${esc(layout.brand || state.selectedBrand)} - ${esc(layout.color || "Branco TX")}</span>`,
+            `<span class="panel-list-label">Painel ${idx + 1} - ${esc(layout.brand || state.selectedBrand)} - ${esc(layout.color || "Branco TX")} - ${esc(layout.thickness || "6")} mm</span>`,
             `<span class="panel-list-size">${Math.round(layout.width)} x ${Math.round(layout.height)} mm</span>`,
             "</button>",
             `<div class="panel-piece-list">${rows}</div>`,
@@ -932,7 +936,7 @@
     lines.push("G90 ; abs");
     lines.push("G0 Z5");
     lines.push("M3 S12000");
-    lines.push("(Panel " + (panelIndex + 1) + " - " + (layout.color || "Sem cor") + ")");
+    lines.push("(Panel " + (panelIndex + 1) + " - " + (layout.color || "Sem cor") + " - " + String(layout.thickness || "6") + " mm)");
     layout.items.forEach((item) => {
       const x = Math.round(item.x);
       const y = Math.round(item.y);
@@ -977,7 +981,7 @@
       ["Método de corte", state.result.cutMode === "saw" ? "Seccionadora" : "Router"],
       ["Unidade de medida", "Milímetros (mm)"],
       ["Painéis necessários", state.result.totalPanels],
-      ["Cortes estimados", state.result.totalCuts],
+      [state.result.cutMode === "saw" ? "Cortes (4 por peça)" : "Cortes estimados", state.result.totalCuts],
       ["Peças posicionadas", state.result.raw.placedCount],
       ["Peças não posicionadas", state.result.raw.unplacedCount],
       ["Custo dos painéis (R$)", Number(state.result.panelCostTotal || 0)],
@@ -996,6 +1000,7 @@
       "Painel",
       "Marca",
       "Cor",
+      "Espessura (mm)",
       "Largura (mm)",
       "Altura (mm)",
       "Quantidade de peças",
@@ -1007,6 +1012,7 @@
         panelIndex + 1,
         layout.brand || state.selectedBrand,
         layout.color || "Sem cor",
+        Number(layout.thickness || 0),
         Math.round(layout.width),
         Math.round(layout.height),
         layout.items.length,
@@ -1016,7 +1022,7 @@
     });
     const panelsSheet = window.XLSX.utils.aoa_to_sheet(panelRows);
     panelsSheet["!autofilter"] = { ref: panelsSheet["!ref"] };
-    setSheetColumns(panelsSheet, [10, 16, 26, 16, 16, 22, 18, 22]);
+    setSheetColumns(panelsSheet, [10, 16, 26, 18, 16, 16, 22, 18, 22]);
     window.XLSX.utils.book_append_sheet(workbook, panelsSheet, "Painéis");
 
     const templateRows = [[
@@ -1128,15 +1134,15 @@
     setSheetColumns(edgeSheet, [10, 28, 24, 16, 24, 18, 26, 22, 16]);
     window.XLSX.utils.book_append_sheet(workbook, edgeSheet, "Fitas de borda");
 
-    const gcodeRows = [["Painel", "Cor", "Linha", "Comando"]];
+    const gcodeRows = [["Painel", "Cor", "Espessura (mm)", "Linha", "Comando"]];
     state.result.layouts.forEach((layout, panelIndex) => {
       generateGcodeForPanel(layout, panelIndex).split("\n").forEach((command, lineIndex) => {
-        gcodeRows.push([panelIndex + 1, layout.color || "Sem cor", lineIndex + 1, command]);
+        gcodeRows.push([panelIndex + 1, layout.color || "Sem cor", Number(layout.thickness || 0), lineIndex + 1, command]);
       });
     });
     const gcodeSheet = window.XLSX.utils.aoa_to_sheet(gcodeRows);
     gcodeSheet["!autofilter"] = { ref: gcodeSheet["!ref"] };
-    setSheetColumns(gcodeSheet, [10, 26, 10, 48]);
+    setSheetColumns(gcodeSheet, [10, 26, 18, 10, 48]);
     window.XLSX.utils.book_append_sheet(workbook, gcodeSheet, "G-code");
 
     const output = window.XLSX.write(workbook, {
@@ -1202,13 +1208,13 @@
     url.hash = "config=" + encoded;
 
     const gcodeBlocks = state.result.layouts.map((layout, idx) => {
-      const header = "GCODE - Painel " + (idx + 1) + " - " + (layout.color || "Sem cor");
+      const header = "GCODE - Painel " + (idx + 1) + " - " + (layout.color || "Sem cor") + " - " + String(layout.thickness || "6") + " mm";
       return [header, generateGcodeForPanel(layout, idx)].join("\n");
     });
     const cutLabel = state.cutMode === "saw" ? "Seccionadora" : "Router";
     const estimatedValue = Number(state.result.totalCost || 0).toFixed(2);
     const panelsList = state.result.layouts.map((layout, idx) => {
-      const panelTitle = "Painel " + (idx + 1) + " - " + (layout.color || "Sem cor");
+      const panelTitle = "Painel " + (idx + 1) + " - " + (layout.color || "Sem cor") + " - " + String(layout.thickness || "6") + " mm";
       const size = Math.round(layout.width) + " x " + Math.round(layout.height) + " mm";
       const items = layout.items
         .map((item) => {
@@ -1229,7 +1235,7 @@
       "Link: " + url.toString(),
       "Corte: " + cutLabel,
       "Painéis necessários: " + state.result.totalPanels,
-      "Cortes estimados: " + state.result.totalCuts,
+      (state.cutMode === "saw" ? "Cortes (4 por peça): " : "Cortes estimados: ") + state.result.totalCuts,
       "Peças posicionadas: " + state.result.raw.placedCount,
       "Peças não posicionadas: " + state.result.raw.unplacedCount,
       "Custo dos painéis: R$ " + formatDecimal(state.result.panelCostTotal),
@@ -1489,6 +1495,9 @@
         (panelIndex + 1) +
         " - " +
         (layout.color || "Sem cor") +
+        " - " +
+        String(layout.thickness || "6") +
+        " mm" +
         " | " +
         Math.round(layout.width) +
         " x " +
