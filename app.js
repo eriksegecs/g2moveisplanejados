@@ -1224,35 +1224,6 @@
     return "PED" + now.slice(-8) + randomPart;
   }
 
-  function generateGcodeForPanel(layout, panelIndex) {
-    const lines = [];
-    lines.push("G21 ; mm");
-    lines.push("G90 ; abs");
-    lines.push("G0 Z5");
-    lines.push("M3 S12000");
-    lines.push("(Panel " + (panelIndex + 1) + " - " + (layout.color || "Sem cor") + " - " + String(layout.thickness || "6") + " mm)");
-    layout.items.forEach((item) => {
-      const x = Math.round(item.x);
-      const y = Math.round(item.y);
-      const w = Math.round(item.width);
-      const h = Math.round(item.height);
-      const label = String(item.label || "Item");
-      lines.push("(Item " + label + ")");
-      lines.push("G0 X" + x + " Y" + y);
-      lines.push("G1 Z-3 F300");
-      lines.push("G1 X" + (x + w) + " Y" + y + " F1200");
-      lines.push("G1 X" + (x + w) + " Y" + (y + h));
-      lines.push("G1 X" + x + " Y" + (y + h));
-      lines.push("G1 X" + x + " Y" + y);
-      lines.push("G0 Z5");
-    });
-    lines.push("M5");
-    lines.push("G0 Z5");
-    lines.push("G0 X0 Y0");
-    lines.push("M2");
-    return lines.join("\n");
-  }
-
   function setSheetColumns(worksheet, widths) {
     worksheet["!cols"] = widths.map((width) => ({ wch: width }));
   }
@@ -1548,17 +1519,6 @@
     setSheetColumns(edgeSheet, [10, 28, 24, 16, 24, 18, 26, 22, 16]);
     window.XLSX.utils.book_append_sheet(workbook, edgeSheet, "Fitas de borda");
 
-    const gcodeRows = [["Painel", "Cor", "Espessura (mm)", "Linha", "Comando"]];
-    state.result.layouts.forEach((layout, panelIndex) => {
-      generateGcodeForPanel(layout, panelIndex).split("\n").forEach((command, lineIndex) => {
-        gcodeRows.push([panelIndex + 1, layout.color || "Sem cor", Number(layout.thickness || 0), lineIndex + 1, command]);
-      });
-    });
-    const gcodeSheet = window.XLSX.utils.aoa_to_sheet(gcodeRows);
-    gcodeSheet["!autofilter"] = { ref: gcodeSheet["!ref"] };
-    setSheetColumns(gcodeSheet, [10, 26, 18, 10, 48]);
-    window.XLSX.utils.book_append_sheet(workbook, gcodeSheet, "G-code");
-
     const output = window.XLSX.write(workbook, {
       bookType: "xlsx",
       type: "array",
@@ -1635,10 +1595,6 @@
     const url = new URL(window.location.href);
     url.hash = "config=" + encoded;
 
-    const gcodeBlocks = state.result.layouts.map((layout, idx) => {
-      const header = "GCODE - Painel " + (idx + 1) + " - " + (layout.color || "Sem cor") + " - " + String(layout.thickness || "6") + " mm";
-      return [header, generateGcodeForPanel(layout, idx)].join("\n");
-    });
     const cutLabel = state.cutMode === "saw" ? "Seccionadora" : "Router";
     const estimatedValue = Number(state.result.totalCost || 0).toFixed(2);
     const panelsList = state.result.layouts.map((layout, idx) => {
@@ -1676,9 +1632,6 @@
       "",
       "----- PAINEIS -----",
       panelsList,
-      "",
-      "----- GCODE POR PAINEL -----",
-      gcodeBlocks.join("\n\n"),
     ].join("\n");
 
     const subject = name + " - " + orderCode;
