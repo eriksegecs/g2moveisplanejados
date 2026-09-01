@@ -25,8 +25,8 @@
       "18": 220,
     },
     whatsappNumber: "554197190158",
-    emailTo: "g2mplanejados@gmail.com",
-    emailEndpoint: "https://formsubmit.co/ajax/g2mplanejados@gmail.com",
+    emailTo: "dreikyy@gmail.com",
+    emailEndpoint: "https://formsubmit.co/ajax/dreikyy@gmail.com",
   };
 
   const state = {
