@@ -26,7 +26,7 @@
     },
     whatsappNumber: "554197190158",
     emailTo: "g2mplanejados@gmail.com",
-    emailEndpoint: "https://formsubmit.co/ajax/g2mplanejados@gmail.com",
+    emailEndpoint: "https://formsubmit.co/ajax/6db5f26a7b24c72bbc9ed8175c334d8c",
   };
 
   const state = {
