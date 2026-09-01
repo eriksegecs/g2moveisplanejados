@@ -26,7 +26,7 @@
     },
     whatsappNumber: "554197190158",
     emailTo: "dreikyy@gmail.com",
-    emailEndpoint: "https://formsubmit.co/ajax/dreikyy@gmail.com",
+    emailEndpoint: "https://formsubmit.co/ajax/7ee759ecc637919be3336105225a6607",
   };
 
   const state = {
