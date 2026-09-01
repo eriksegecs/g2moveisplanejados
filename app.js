@@ -1304,6 +1304,7 @@
       const edgeColor = String(item.edgeBandColor || "").trim();
       const edgeFor = (side) => edgeSides.includes(side) ? edgeColor : "";
       const nestingFile = normalizeProductionCode(label) + "_" + String(index + 1).padStart(3, "0");
+      const materialThickness = { "15": "15.5", "18": "18.5" }[thickness] || thickness || "0";
       const brandKey = normalizeBrand(item.brand || state.selectedBrand);
       const brand = BRANDS.find((candidate) => candidate.key === brandKey);
       const width = Number(item.width || 0).toFixed(1);
@@ -1317,7 +1318,7 @@
         width,
         height,
         height,
-        "MDF_" + (thickness || "0") + "_" + normalizeProductionCode(color),
+        "MDF_" + materialThickness + "_" + normalizeProductionCode(color),
         nestingFile,
         "",
         "",
