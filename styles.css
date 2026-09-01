@@ -84,6 +84,27 @@ input {
   overflow-y: visible;
 }
 
+.site-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 8px 0;
+  color: rgba(30, 30, 30, 0.62);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.76rem;
+}
+
+.site-version {
+  padding: 3px 8px;
+  border: 1px solid rgba(47, 93, 80, 0.2);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--green);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
 .opcut-toolbar {
   display: flex;
   align-items: center;
@@ -226,6 +247,7 @@ input {
   }
 
   .opcut-screen,
+  .site-footer,
   .share-overlay,
   .share-box,
   .opcut-toolbar,
