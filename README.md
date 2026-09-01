@@ -37,7 +37,7 @@ O botão `Solicitar orçamento` abre uma confirmação e envia para `g2mplanejad
 - anexo `.xlsx` com as abas `Resumo`, `Painéis`, `Gabarito`, `Cortes`, `Fitas de borda` e `G-code`.
 - anexo `.csv` no formato da ordem de produção de referência, com 22 colunas, separador `;`, quebra de linha Windows e codificação Windows-1252.
 
-O envio usa o código de formulário ativado pelo FormSubmit para manter o endereço do destinatário fora da URL pública. A planilha é gerada no navegador com SheetJS 0.20.3.
+O envio usa o endpoint AJAX do FormSubmit associado a `g2mplanejados@gmail.com` e informa a URL pública do formulário. A primeira solicitação envia para essa caixa uma mensagem de ativação; é necessário clicar uma única vez em `Activate Form` antes de receber os orçamentos. A planilha é gerada no navegador com SheetJS 0.20.3.
 
 ## Personalização rápida
 

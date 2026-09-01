@@ -26,7 +26,7 @@
     },
     whatsappNumber: "554197190158",
     emailTo: "g2mplanejados@gmail.com",
-    emailEndpoint: "https://formsubmit.co/ajax/6db5f26a7b24c72bbc9ed8175c334d8c",
+    emailEndpoint: "https://formsubmit.co/ajax/g2mplanejados@gmail.com",
   };
 
   const state = {
@@ -1569,6 +1569,9 @@
     formData.append("_subject", subject);
     formData.append("_captcha", "false");
     formData.append("_template", "table");
+    const formUrl = new URL(window.location.href);
+    formUrl.hash = "";
+    formData.append("_url", formUrl.origin + formUrl.pathname);
     formData.append("destinatario", DEFAULTS.emailTo);
     formData.append("mensagem", body);
     const files = Array.isArray(attachments) ? attachments : [attachments];
@@ -1583,7 +1586,11 @@
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || data.success === false || data.success === "false") {
-      throw new Error(data.message || "Não foi possível enviar a solicitação por e-mail.");
+      const serviceMessage = String(data.message || "");
+      if (/needs activation/i.test(serviceMessage)) {
+        throw new Error("O e-mail de orçamentos aguarda ativação. Abra a mensagem da FormSubmit enviada para " + DEFAULTS.emailTo + " e clique em Activate Form; depois tente novamente.");
+      }
+      throw new Error(serviceMessage || "Não foi possível enviar a solicitação por e-mail.");
     }
     return data;
   }
