@@ -26,7 +26,7 @@
     },
     whatsappNumber: "554197190158",
     emailTo: "dreikyy@gmail.com",
-    emailEndpoint: "https://formsubmit.co/ajax/7ee759ecc637919be3336105225a6607",
+    emailEndpoint: "https://formsubmit.co/7ee759ecc637919be3336105225a6607",
   };
 
   const state = {
@@ -1587,15 +1587,19 @@
     formData.append("destinatario", DEFAULTS.emailTo);
     formData.append("mensagem", body);
     const files = Array.isArray(attachments) ? attachments : [attachments];
-    files.filter(Boolean).forEach((attachment) => {
-      formData.append("attachment", attachment.blob, attachment.filename);
+    files.filter(Boolean).forEach((attachment, index) => {
+      const fieldName = index === 0 ? "attachment" : index === 1 ? "attachment_csv" : "attachment_" + (index + 1);
+      formData.append(fieldName, attachment.blob, attachment.filename);
     });
 
     const response = await fetch(DEFAULTS.emailEndpoint, {
       method: "POST",
-      headers: { Accept: "application/json" },
       body: formData,
+      mode: "no-cors",
     });
+    if (response.type === "opaque") {
+      return { success: true };
+    }
     const data = await response.json().catch(() => ({}));
     if (!response.ok || data.success === false || data.success === "false") {
       const serviceMessage = String(data.message || "");
