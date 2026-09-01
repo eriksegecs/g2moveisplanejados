@@ -11,12 +11,12 @@
     edgeBandRate: 2,
     edgeBandAllowance: 50,
     routerRate: {
-      "6": 16,
+      "6": 30,
       "15": 30,
       "18": 30,
     },
     routerMax: {
-      "6": 78,
+      "6": 220,
       "15": 220,
       "18": 220,
     },
@@ -668,9 +668,7 @@
     });
 
     const totalPanels = Math.max(1, layouts.length);
-    const totalCuts = settings.cutMode === "saw"
-      ? placedCount * 4
-      : (placedCount ? Math.max(4, placedCount * 2 + Math.max(0, placedCount - 1)) : 0);
+    const totalCuts = placedCount * 4;
     let cutCostTotal = 0;
 
     if (settings.cutMode === "router") {
@@ -717,6 +715,7 @@
       edgeBandSideCount: edgeBandSideCount,
       cutMode: settings.cutMode,
       cutUnitPrice: settings.cutMode === "saw" ? settings.cutCostSaw : null,
+      routerRatePerM2: settings.cutMode === "router" ? settings.routerRate["6"] : null,
       edgeBandRate: settings.edgeBandRate,
       edgeBandAllowance: settings.edgeBandAllowance,
       method: "custom-maxrects",
@@ -879,7 +878,9 @@
     sumCostEl.textContent = formatDecimal(result.totalCost);
     sumPanelCostEl.textContent = formatDecimal(result.panelCostTotal);
     sumCutTypeEl.textContent = result.cutMode === "saw" ? "Seccionadora" : "Router";
-    sumCutUnitEl.textContent = result.cutMode === "saw" ? "cortes × R$ 3,50" : "cortes estimados";
+    sumCutUnitEl.textContent = result.cutMode === "saw"
+      ? "cortes (4 por peça) × R$ 3,50"
+      : "cortes (4 por peça) • R$ " + formatDecimal(result.routerRatePerM2) + "/m²";
     sumCutCostEl.textContent = formatDecimal(result.cutCostTotal);
     sumEdgeSidesEl.textContent = String(result.edgeBandSideCount);
     sumEdgeLengthEl.textContent = formatDecimal(result.edgeBandLengthM);
@@ -981,7 +982,8 @@
       ["Método de corte", state.result.cutMode === "saw" ? "Seccionadora" : "Router"],
       ["Unidade de medida", "Milímetros (mm)"],
       ["Painéis necessários", state.result.totalPanels],
-      [state.result.cutMode === "saw" ? "Cortes (4 por peça)" : "Cortes estimados", state.result.totalCuts],
+      ["Cortes (4 por peça)", state.result.totalCuts],
+      [state.result.cutMode === "saw" ? "Tarifa por corte (R$)" : "Tarifa Router (R$/m²)", state.result.cutMode === "saw" ? Number(state.result.cutUnitPrice || 0) : Number(state.result.routerRatePerM2 || 0)],
       ["Peças posicionadas", state.result.raw.placedCount],
       ["Peças não posicionadas", state.result.raw.unplacedCount],
       ["Custo dos painéis (R$)", Number(state.result.panelCostTotal || 0)],
@@ -1235,11 +1237,11 @@
       "Link: " + url.toString(),
       "Corte: " + cutLabel,
       "Painéis necessários: " + state.result.totalPanels,
-      (state.cutMode === "saw" ? "Cortes (4 por peça): " : "Cortes estimados: ") + state.result.totalCuts,
+      "Cortes (4 por peça): " + state.result.totalCuts,
       "Peças posicionadas: " + state.result.raw.placedCount,
       "Peças não posicionadas: " + state.result.raw.unplacedCount,
       "Custo dos painéis: R$ " + formatDecimal(state.result.panelCostTotal),
-      "Custo do corte: R$ " + formatDecimal(state.result.cutCostTotal) + (state.cutMode === "saw" ? " (" + state.result.totalCuts + " cortes x R$ 3,50)" : ""),
+      "Custo do corte: R$ " + formatDecimal(state.result.cutCostTotal) + (state.cutMode === "saw" ? " (" + state.result.totalCuts + " cortes x R$ 3,50)" : " (R$ " + formatDecimal(state.result.routerRatePerM2) + "/m²)"),
       "Fita de borda: " + state.result.edgeBandSideCount + " lados; " + formatDecimal(state.result.edgeBandLengthM) + " m com acréscimos; R$ " + formatDecimal(state.result.edgeBandCostTotal),
       "Valor estimado: R$ " + formatDecimal(estimatedValue),
       "Unidade de medida: milímetros (mm)",
