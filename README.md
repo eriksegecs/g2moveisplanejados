@@ -23,9 +23,9 @@ Aplicação 100% frontend para orçamento, plano de corte e fita de borda, sem F
 - O tipo de corte pode ser `Router` ou `Seccionadora`.
 - Na Router, são consideradas quatro trajetórias por peça e o serviço custa R$ 30,00 por m² cortado, em todas as espessuras.
 - Na seccionadora, o layout organiza as peças em tiras verticais e prioriza o encaixe de outras peças na mesma tira. Cada corte vai até o fim da chapa ou da tira correspondente; uma operação já executada não é contada novamente. A limpeza das quatro bordas é contabilizada uma vez por chapa e cada operação custa R$ 3,50.
-- O orçamento não cobra o valor da chapa inteira. Para Branco TX, utiliza a área das peças: R$ 38,00/m² em 6 mm e R$ 58,00/m² em 18 mm.
+- O orçamento não cobra o valor da chapa inteira. Para Branco TX, utiliza a área das peças: R$ 38,00/m² em 6 mm, R$ 54,00/m² em 15 mm e R$ 58,00/m² em 18 mm.
 - Cores diferentes de Branco TX e espessuras sem tarifa cadastrada ficam marcadas como valor da chapa sob consulta.
-- A colagem da fita de borda custa R$ 2,00 por metro, com acréscimo de 50 mm em cada lado selecionado.
+- A colagem da fita de borda custa R$ 2,50 por metro, com acréscimo de 50 mm em cada lado selecionado.
 - Os lados com fita aparecem no plano de corte, no gabarito lateral, na impressão, no e-mail e na planilha Excel.
 
 ## Solicitação por e-mail
@@ -68,6 +68,6 @@ Validação do catálogo (antes de publicar):
 
 ## Observações
 
-- O seletor de marca mantém as sugestões e os preços cadastrados, mas a cor da peça é sempre um campo de texto livre.
+- Cada peça possui seu próprio seletor de marca, permitindo misturar fabricantes no mesmo orçamento; a cor continua sendo um campo de texto livre com sugestões da marca escolhida.
 - Cores digitadas com diferenças apenas de maiúsculas, espaços ou acentos são agrupadas no mesmo painel.
 - O envio com anexo exige que a página esteja servida por HTTP/HTTPS; não funciona aberta diretamente por `file://`.

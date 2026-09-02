@@ -17,7 +17,7 @@
   <meta name="twitter:description" content="Orçamento, plano de corte e cálculo de fita de borda em um só lugar.">
   <meta name="twitter:image" content="https://eriksegecs.github.io/g2moveisplanejados/assets/og.png?v=vortex-20260901">
   <meta name="twitter:image:alt" content="Vortex MDF — O corte exato do seu projeto.">
-  <link rel="stylesheet" href="./styles.css?v=2026.09.01.7">
+  <link rel="stylesheet" href="./styles.css?v=2026.09.02.1">
 </head>
 <body>
   <main class="opcut-screen">
@@ -79,21 +79,25 @@
 
     <section class="opcut-body">
       <aside class="opcut-sidebar">
-        <h2>Orçamento</h2>
-        <p>Informe as dimensões em milímetros. O corte selecionado e o layout são atualizados automaticamente a cada alteração.</p>
+        <div class="section-heading">
+          <span class="section-step">01</span>
+          <div><h2>Monte seu orçamento</h2><p>Informe as peças em milímetros. O plano de corte e os valores são atualizados automaticamente.</p></div>
+        </div>
 
         <div class="lead-fields">
           <label>Nome<input id="lead-name" type="text" placeholder="Seu nome"></label>
           <label>Telefone<input id="lead-phone" type="tel" placeholder="(DDD) 99999-9999"></label>
-          <label>Marca
-            <select id="brand-select" class="item-select"></select>
-          </label>
           <label>Tipo de corte
             <select id="cut-mode-select" class="item-select">
               <option value="router">Router</option>
               <option value="saw">Seccionadora</option>
             </select>
           </label>
+        </div>
+
+        <div class="item-table-title">
+          <div><strong>Peças do projeto</strong><span>Escolha a marca individualmente em cada peça.</span></div>
+          <span class="auto-badge">Cálculo automático</span>
         </div>
 
         <div class="item-table">
@@ -103,6 +107,7 @@
             <span>Alt.<small>(mm)</small></span>
             <span>Qtd</span>
             <span>Esp.<small>(mm)</small></span>
+            <span class="col-center">Marca</span>
             <span class="col-center">Cor (nome)</span>
             <span class="col-center">Fita (cor)</span>
             <span class="col-center">Lados da fita</span>
@@ -113,7 +118,7 @@
         </div>
 
         <div class="form-actions">
-          <button class="btn btn-outline" id="add-row-btn" type="button">Adicionar placa</button>
+          <button class="btn btn-outline" id="add-row-btn" type="button">+ Adicionar peça</button>
         </div>
       </aside>
 
@@ -126,10 +131,11 @@
 
         <aside class="opcut-top">
           <div class="opcut-summary">
+            <div class="summary-heading"><span class="section-step">02</span><strong>Resumo do orçamento</strong></div>
             <div><strong>Chapas necessárias:</strong> <span id="sum-panels">0</span> <span class="muted">(sem cobrança da chapa inteira)</span></div>
-            <div><strong>Peças Branco TX:</strong> <span id="sum-piece-area">0,00</span> m² — R$ <span id="sum-piece-cost">0,00</span><small class="summary-rate-note">6 mm: R$ 38,00/m² • 18 mm: R$ 58,00/m²</small></div>
+            <div><strong>Peças Branco TX:</strong> <span id="sum-piece-area">0,00</span> m² — R$ <span id="sum-piece-cost">0,00</span><small class="summary-rate-note">6 mm: R$ 38,00/m² • 15 mm: R$ 54,00/m² • 18 mm: R$ 58,00/m²</small></div>
             <div><strong>Corte (<span id="sum-cut-type">Router</span>):</strong> <span id="sum-cuts">0</span> <span id="sum-cut-unit">peças</span> — R$ <span id="sum-cut-cost">0,00</span></div>
-            <div><strong>Fita de borda:</strong> <span id="sum-edge-sides">0</span> lados • <span id="sum-edge-length">0,00</span> m — R$ <span id="sum-edge-cost">0,00</span></div>
+            <div><strong>Fita de borda:</strong> <span id="sum-edge-sides">0</span> lados • <span id="sum-edge-length">0,00</span> m — R$ <span id="sum-edge-cost">0,00</span><small class="summary-rate-note">Colagem: R$ 2,50/m, com acréscimo de 50 mm por lado</small></div>
             <div id="material-consultation" class="quote-notice">Para chapas diferentes de Branco TX, consulte o valor.</div>
             <div class="summary-total"><strong id="sum-total-label">Valor estimado:</strong> R$ <span id="sum-cost">0,00</span></div>
             <div class="muted">Método: <span id="sum-method">custom-maxrects</span></div>
@@ -158,11 +164,11 @@
 
   <footer class="site-footer" aria-label="Versão do site">
     <span>Vortex MDF</span>
-    <span class="site-version">Versão 2026.09.01.7</span>
+    <span class="site-version">Versão 2026.09.02.1</span>
   </footer>
 
   <div id="print-area" class="print-area" hidden></div>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-  <script src="./app.js?v=2026.09.01.7"></script>
+  <script src="./app.js?v=2026.09.02.1"></script>
 </body>
 </html>

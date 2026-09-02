@@ -8,10 +8,11 @@
     cutWidthRouter: 14,
     panelCost: 350,
     cutCostSaw: 3.5,
-    edgeBandRate: 2,
+    edgeBandRate: 2.5,
     edgeBandAllowance: 50,
     whiteTxPieceRate: {
       "6": 38,
+      "15": 54,
       "18": 58,
     },
     routerRate: {
@@ -161,8 +162,6 @@
 
   const toggleLabelsEl = document.getElementById("toggle-labels");
   const toggleDimensionsEl = document.getElementById("toggle-dimensions");
-  const brandSelectEl = document.getElementById("brand-select");
-
   function labelForIndex(index) {
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     let idx = index + 1;
@@ -180,9 +179,10 @@
     return BRANDS.some((b) => b.key === normalized) ? normalized : "arauco";
   }
 
-  function getCurrentPalette() {
-    const brand = normalizeBrand(state.selectedBrand);
-    return catalogByBrand[brand] || [];
+  function brandLabel(value) {
+    const normalized = normalizeBrand(value);
+    const brand = BRANDS.find((candidate) => candidate.key === normalized);
+    return brand ? brand.label : normalized;
   }
 
   function getColorByName(name, brand) {
@@ -366,22 +366,32 @@
     applyCatalogRows(fromGviz);
   }
 
-  function populateBrandSelect() {
-    if (!brandSelectEl) return;
-    brandSelectEl.innerHTML = BRANDS.map((brand) => `<option value="${brand.key}">${brand.label}</option>`).join("");
-    brandSelectEl.value = normalizeBrand(state.selectedBrand);
+  function brandOptionsHtml() {
+    return BRANDS.map((brand) => `<option value="${brand.key}">${brand.label}</option>`).join("");
+  }
+
+  function updateRowColorOptions(row) {
+    if (!row) return;
+    const brandSelect = row.querySelector('select[name="item_brand"]');
+    const colorInput = row.querySelector('input[name="item_color"]');
+    if (!brandSelect || !colorInput) return;
+    colorInput.setAttribute("list", "color-name-options-" + normalizeBrand(brandSelect.value));
   }
 
   function populateColorNameOptions() {
-    let datalist = document.getElementById("color-name-options");
-    if (!datalist) {
-      datalist = document.createElement("datalist");
-      datalist.id = "color-name-options";
-      document.body.appendChild(datalist);
-    }
-    datalist.innerHTML = getCurrentPalette()
-      .map((color) => `<option value="${esc(color.name)}"></option>`)
-      .join("");
+    BRANDS.forEach((brand) => {
+      const datalistId = "color-name-options-" + brand.key;
+      let datalist = document.getElementById(datalistId);
+      if (!datalist) {
+        datalist = document.createElement("datalist");
+        datalist.id = datalistId;
+        document.body.appendChild(datalist);
+      }
+      datalist.innerHTML = (catalogByBrand[brand.key] || [])
+        .map((color) => `<option value="${esc(color.name)}"></option>`)
+        .join("");
+    });
+    Array.from(itemsEl.querySelectorAll(".item-row")).forEach(updateRowColorOptions);
   }
 
   function buildEdgeSidePicker() {
@@ -412,7 +422,8 @@
       '<input type="text" name="item_height" minlength="1" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="mm" aria-label="Altura em milímetros" required>',
       '<input type="number" name="item_qty" min="1" value="1" required>',
       '<select name="item_thickness" class="item-select" aria-label="Espessura em milímetros"><option value="6">6 mm</option><option value="15">15 mm</option><option value="18">18 mm</option></select>',
-      '<input type="text" name="item_color" class="item-color-input" maxlength="50" list="color-name-options" placeholder="Nome da cor" aria-label="Nome da cor" required>',
+      '<select name="item_brand" class="item-select item-brand-select" aria-label="Marca da peça">' + brandOptionsHtml() + '</select>',
+      '<input type="text" name="item_color" class="item-color-input" maxlength="50" list="color-name-options-arauco" placeholder="Nome da cor" aria-label="Nome da cor" required>',
       '<input type="text" name="edge_band_color" class="edge-band-color-input" maxlength="50" placeholder="Cor da fita" aria-label="Nome da cor da fita de borda">',
       buildEdgeSidePicker(),
       '<label class="checkbox compact"><input type="checkbox" class="rotate-toggle" checked></label>',
@@ -442,6 +453,7 @@
       if (values.thickness) {
         row.querySelector('select[name="item_thickness"]').value = String(values.thickness);
       }
+      row.querySelector('select[name="item_brand"]').value = normalizeBrand(values.brand || state.selectedBrand);
       row.querySelector('input[name="item_color"]').value = cleanColorName(values.color || "Branco TX");
       row.querySelector('input[name="edge_band_color"]').value = String(values.edgeBandColor || "").trim();
       normalizeEdgeSides(values.edgeSides).forEach((side) => {
@@ -449,6 +461,7 @@
         if (checkbox) checkbox.checked = true;
       });
     }
+    updateRowColorOptions(row);
     itemsEl.appendChild(row);
     updateEdgeSideSummary(row);
     updateLabels();
@@ -469,6 +482,7 @@
       const quantity = Number(row.querySelector('input[name="item_qty"]').value || 0);
       const canRotate = row.querySelector(".rotate-toggle").checked;
       const thickness = row.querySelector('select[name="item_thickness"]').value;
+      const brand = normalizeBrand(row.querySelector('select[name="item_brand"]').value);
       const color = cleanColorName(row.querySelector('input[name="item_color"]').value);
       const edgeBandColor = String(row.querySelector('input[name="edge_band_color"]').value || "").trim();
       const edgeSides = Array.from(row.querySelectorAll('input[data-role="edge-side"]:checked')).map((input) => input.value);
@@ -483,7 +497,7 @@
           color: color,
           edgeBandColor: edgeBandColor,
           edgeSides: normalizeEdgeSides(edgeSides),
-          brand: state.selectedBrand,
+          brand: brand,
         });
       }
     });
@@ -958,7 +972,7 @@
       const isWhiteTx = normalizeColorKey(layout.color) === normalizeColorKey("Branco TX");
       const rate = isWhiteTx ? Number(settings.whiteTxPieceRate[thickness] || 0) : 0;
       if (!rate) {
-        materialConsultations.add((layout.color || "Sem cor") + " " + thickness + " mm");
+        materialConsultations.add(brandLabel(layout.brand) + " - " + (layout.color || "Sem cor") + " " + thickness + " mm");
         return;
       }
       layout.items.forEach((item) => {
@@ -1062,7 +1076,7 @@
         return [
           `<button class="panel-tab${isActive ? " is-active" : ""}" id="panel-tab-${panelIndex}" type="button" role="tab" aria-selected="${isActive}" aria-controls="panel-layout-${panelIndex}" tabindex="${isActive ? "0" : "-1"}" data-panel-index="${panelIndex}">`,
           `<span>Chapa ${panelIndex + 1}</span>`,
-          `<small>${esc(layout.color || "Branco TX")} • ${esc(layout.thickness || "6")} mm • ${panelCutCount} ${result.cutMode === "saw" ? "cortes" : "traj."}</small>`,
+          `<small>${esc(brandLabel(layout.brand))} • ${esc(layout.color || "Branco TX")} • ${esc(layout.thickness || "6")} mm • ${panelCutCount} ${result.cutMode === "saw" ? "cortes" : "traj."}</small>`,
           `</button>`,
         ].join("");
       })
@@ -1095,7 +1109,7 @@
 
         return [
           `<div class="layout-card${isActive ? " is-active" : ""}" id="panel-layout-${panelIndex}" role="tabpanel" aria-labelledby="panel-tab-${panelIndex}" data-panel-index="${panelIndex}"${isActive ? "" : " hidden"}>`,
-          `<div class="layout-title">Painel ${panelIndex + 1} - ${esc(layout.brand || state.selectedBrand)} - ${esc(layout.color || "Branco TX")} - ${esc(layout.thickness || "6")} mm</div>`,
+          `<div class="layout-title">Painel ${panelIndex + 1} - ${esc(brandLabel(layout.brand))} - ${esc(layout.color || "Branco TX")} - ${esc(layout.thickness || "6")} mm</div>`,
           `<div class="layout-meta">Medidas internas: ${Math.round(layout.width)} x ${Math.round(layout.height)} mm${layout.items.some((item) => normalizeEdgeSides(item.edgeSides).length) ? " • linhas coloridas = fita de borda" : ""}</div>`,
           `<svg class="layout-svg" viewBox="0 0 ${Math.round(layout.width)} ${Math.round(layout.height)}" preserveAspectRatio="xMidYMid meet">`,
           `<defs>`,
@@ -1131,7 +1145,7 @@
           return [
             '<div class="panel-list-group">',
             `<button class="panel-list-row${idx === activePanelIndex ? " is-active" : ""}" type="button" data-panel-index="${idx}">`,
-            `<span class="panel-list-label">Painel ${idx + 1} - ${esc(layout.brand || state.selectedBrand)} - ${esc(layout.color || "Branco TX")} - ${esc(layout.thickness || "6")} mm</span>`,
+            `<span class="panel-list-label">Painel ${idx + 1} - ${esc(brandLabel(layout.brand))} - ${esc(layout.color || "Branco TX")} - ${esc(layout.thickness || "6")} mm</span>`,
             `<span class="panel-list-size">${Math.round(layout.width)} x ${Math.round(layout.height)} mm</span>`,
             "</button>",
             `<div class="panel-piece-list">${rows}</div>`,
@@ -1351,12 +1365,14 @@
       ["Peças não posicionadas", state.result.raw.unplacedCount],
       ["Área tarifada das peças Branco TX (m²)", Number(state.result.whiteTxPieceAreaM2 || 0)],
       ["Branco TX 6 mm (R$/m²)", Number(state.result.whiteTxPieceRate["6"] || 0)],
+      ["Branco TX 15 mm (R$/m²)", Number(state.result.whiteTxPieceRate["15"] || 0)],
       ["Branco TX 18 mm (R$/m²)", Number(state.result.whiteTxPieceRate["18"] || 0)],
       ["Custo das peças Branco TX (R$)", Number(state.result.whiteTxPieceCostTotal || 0)],
       ["Valor de chapa sob consulta", state.result.materialConsultationRequired ? state.result.materialConsultationLabels.join(", ") : "Não"],
       ["Custo do corte (R$)", Number(state.result.cutCostTotal || 0)],
       ["Quantidade de lados com fita", state.result.edgeBandSideCount],
       ["Fita para colagem, com acréscimos (m)", Number(state.result.edgeBandLengthM || 0)],
+      ["Tarifa da colagem da fita (R$/m)", Number(state.result.edgeBandRate || 0)],
       ["Custo da colagem da fita (R$)", Number(state.result.edgeBandCostTotal || 0)],
       [state.result.materialConsultationRequired ? "Subtotal estimado (R$)" : "Valor estimado (R$)", Number(state.result.totalCost || 0)],
     ];
@@ -1379,7 +1395,7 @@
     state.result.layouts.forEach((layout, panelIndex) => {
       panelRows.push([
         panelIndex + 1,
-        layout.brand || state.selectedBrand,
+        brandLabel(layout.brand),
         layout.color || "Sem cor",
         Number(layout.thickness || 0),
         Math.round(layout.width),
@@ -1415,7 +1431,7 @@
         templateRows.push([
           panelIndex + 1,
           String(item.label || "Item").replace(/\s*\(r\)$/, ""),
-          layout.brand || state.selectedBrand,
+          brandLabel(layout.brand),
           layout.color || "Sem cor",
           Number(item.thickness || 0),
           Math.round(item.x),
@@ -1598,7 +1614,7 @@
     const cutLabel = state.cutMode === "saw" ? "Seccionadora" : "Router";
     const estimatedValue = Number(state.result.totalCost || 0).toFixed(2);
     const panelsList = state.result.layouts.map((layout, idx) => {
-      const panelTitle = "Painel " + (idx + 1) + " - " + (layout.color || "Sem cor") + " - " + String(layout.thickness || "6") + " mm";
+      const panelTitle = "Painel " + (idx + 1) + " - " + brandLabel(layout.brand) + " - " + (layout.color || "Sem cor") + " - " + String(layout.thickness || "6") + " mm";
       const size = Math.round(layout.width) + " x " + Math.round(layout.height) + " mm";
       const items = layout.items
         .map((item) => {
@@ -1622,10 +1638,10 @@
       (state.cutMode === "saw" ? "Operações únicas de corte: " : "Trajetórias (4 lados por peça): ") + state.result.totalCuts,
       "Peças posicionadas: " + state.result.raw.placedCount,
       "Peças não posicionadas: " + state.result.raw.unplacedCount,
-      "Peças Branco TX: " + formatDecimal(state.result.whiteTxPieceAreaM2) + " m²; R$ " + formatDecimal(state.result.whiteTxPieceCostTotal) + " (6 mm: R$ 38,00/m²; 18 mm: R$ 58,00/m²)",
+      "Peças Branco TX: " + formatDecimal(state.result.whiteTxPieceAreaM2) + " m²; R$ " + formatDecimal(state.result.whiteTxPieceCostTotal) + " (6 mm: R$ 38,00/m²; 15 mm: R$ 54,00/m²; 18 mm: R$ 58,00/m²)",
       state.result.materialConsultationRequired ? "Valor da chapa sob consulta: " + state.result.materialConsultationLabels.join(", ") : "Chapas diferentes de Branco TX: consultar valor",
       "Custo do corte: R$ " + formatDecimal(state.result.cutCostTotal) + (state.cutMode === "saw" ? " (" + state.result.totalCuts + " operações x R$ 3,50; inclui 4 limpezas por chapa)" : " (R$ " + formatDecimal(state.result.routerRatePerM2) + "/m²)"),
-      "Fita de borda: " + state.result.edgeBandSideCount + " lados; " + formatDecimal(state.result.edgeBandLengthM) + " m com acréscimos; R$ " + formatDecimal(state.result.edgeBandCostTotal),
+      "Fita de borda: " + state.result.edgeBandSideCount + " lados; " + formatDecimal(state.result.edgeBandLengthM) + " m com acréscimos; R$ " + formatDecimal(state.result.edgeBandCostTotal) + " (R$ " + formatDecimal(state.result.edgeBandRate) + "/m)",
       (state.result.materialConsultationRequired ? "Subtotal estimado: R$ " : "Valor estimado: R$ ") + formatDecimal(estimatedValue),
       "Unidade de medida: milímetros (mm)",
       "Anexos: planilha Excel completa e CSV de produção no formato da OP de referência.",
@@ -1757,7 +1773,7 @@
       brand: item.brand || state.selectedBrand,
     }));
     return {
-      brand: state.selectedBrand,
+      brand: items[0]?.brand || state.selectedBrand,
       cutMode: state.cutMode,
       lead: {
         name: (document.getElementById("lead-name")?.value || "").trim(),
@@ -1770,7 +1786,6 @@
   function applySharePayload(payload) {
     if (!payload || !Array.isArray(payload.items)) return;
     state.selectedBrand = normalizeBrand(payload.brand || state.selectedBrand);
-    if (brandSelectEl) brandSelectEl.value = state.selectedBrand;
     state.cutMode = payload.cutMode === "saw" ? "saw" : "router";
     const cutModeSelect = document.getElementById("cut-mode-select");
     if (cutModeSelect) cutModeSelect.value = state.cutMode;
@@ -1787,6 +1802,7 @@
         quantity: item.quantity || 1,
         canRotate: item.canRotate !== false,
         thickness: item.thickness || 6,
+        brand: item.brand || payload.brand || state.selectedBrand,
         color: item.color || "Branco TX",
         edgeBandColor: item.edgeBandColor || "",
         edgeSides: normalizeEdgeSides(item.edgeSides),
@@ -2067,12 +2083,12 @@
     state.result = null;
     state.activePanelIndex = 0;
     clearRows();
-    addRow({ width: 1000, height: 1000, quantity: 1, canRotate: true, thickness: 6, color: "Branco TX" });
+    addRow({ width: 1000, height: 1000, quantity: 1, canRotate: true, thickness: 6, brand: state.selectedBrand, color: "Branco TX" });
     calculate();
   }
 
   document.getElementById("add-row-btn").addEventListener("click", function () {
-    addRow({ width: 1000, height: 1000, quantity: 1, canRotate: true, thickness: 6, color: "Branco TX" });
+    addRow({ width: 1000, height: 1000, quantity: 1, canRotate: true, thickness: 6, brand: state.selectedBrand, color: "Branco TX" });
     scheduleCalculate();
   });
 
@@ -2106,8 +2122,9 @@
       scheduleCalculate();
       return;
     }
-    const other = event.target.closest('select[name="item_thickness"], .rotate-toggle');
+    const other = event.target.closest('select[name="item_thickness"], select[name="item_brand"], .rotate-toggle');
     if (other) {
+      if (other.name === "item_brand") updateRowColorOptions(other.closest(".item-row"));
       scheduleCalculate();
     }
   }
@@ -2173,14 +2190,6 @@
     if (event.key === "Escape") closeOrderConfirmation();
   });
 
-  if (brandSelectEl) {
-    brandSelectEl.addEventListener("change", function () {
-      state.selectedBrand = normalizeBrand(brandSelectEl.value);
-      populateColorNameOptions();
-      scheduleCalculate();
-    });
-  }
-
   const cutModeSelectEl = document.getElementById("cut-mode-select");
   if (cutModeSelectEl) {
     cutModeSelectEl.addEventListener("change", function () {
@@ -2190,7 +2199,6 @@
   }
 
   async function init() {
-    populateBrandSelect();
     try {
       await loadCatalogFromSheet();
     } catch (error) {
