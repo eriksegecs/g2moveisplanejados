@@ -27,7 +27,7 @@
     },
     whatsappNumber: "554197190158",
     emailTo: "vortexmdf01@gmail.com",
-    emailEndpoint: "https://formsubmit.co/vortexmdf01@gmail.com",
+    emailEndpoint: "https://formsubmit.co/1fe08a81afccd0ff11ce0b3cf71d5c7f",
   };
 
   const state = {

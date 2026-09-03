@@ -38,7 +38,7 @@ O botão `Solicitar orçamento` abre uma confirmação e envia para `vortexmdf01
 - anexo `.xlsx` com as abas `Resumo`, `Painéis`, `Gabarito`, `Cortes` e `Fitas de borda`.
 - anexo `.csv` no formato da ordem de produção de referência, com 22 colunas, separador `;`, quebra de linha Windows e codificação Windows-1252.
 
-O envio usa o endpoint HTML nativo do FormSubmit associado a `vortexmdf01@gmail.com`, com `multipart/form-data` e campos de arquivo separados para o Excel e o CSV. No primeiro uso, a nova caixa precisa confirmar a mensagem de ativação enviada pelo FormSubmit. A URL pública do formulário também é informada. A planilha é gerada no navegador com SheetJS 0.20.3.
+O envio usa o código oculto e ativado do FormSubmit associado a `vortexmdf01@gmail.com`, com `multipart/form-data` e campos de arquivo separados para o Excel e o CSV. A URL pública do formulário também é informada. A planilha é gerada no navegador com SheetJS 0.20.3.
 
 ## Personalização rápida
 
