@@ -26,8 +26,8 @@
       "18": 220,
     },
     whatsappNumber: "554197190158",
-    emailTo: "dreikyy@gmail.com",
-    emailEndpoint: "https://formsubmit.co/7ee759ecc637919be3336105225a6607",
+    emailTo: "vortexmdf01@gmail.com",
+    emailEndpoint: "https://formsubmit.co/vortexmdf01@gmail.com",
   };
 
   const state = {
