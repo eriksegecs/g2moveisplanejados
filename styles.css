@@ -422,6 +422,26 @@ summary:focus-visible {
     color: #fff;
   }
 
+  .print-edge-colors {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2mm;
+  }
+
+  .print-edge-colors > div {
+    display: grid;
+    grid-template-columns: 1.5fr 0.7fr 1fr 1fr;
+    gap: 2mm;
+    padding: 2.5mm 3mm;
+    border: 0.25mm solid #ccd7d3;
+    background: #f5f8f7;
+    font-size: 8pt;
+  }
+
+  .print-edge-colors strong {
+    color: #174f44;
+  }
+
   .print-consultation {
     margin-top: 3mm;
     padding: 2.5mm 3mm;
@@ -627,6 +647,26 @@ summary:focus-visible {
   margin-top: 2px;
   color: rgba(0, 0, 0, 0.58);
   font-size: 0.75rem;
+}
+
+.edge-color-breakdown {
+  display: grid;
+  gap: 4px;
+  padding: 8px 10px;
+  border-left: 3px solid var(--green);
+  border-radius: 0 8px 8px 0;
+  background: rgba(23, 79, 68, 0.06);
+  color: var(--green-strong);
+  font-size: 0.82rem;
+}
+
+.edge-color-breakdown > div {
+  line-height: 1.35;
+}
+
+.edge-color-empty {
+  color: var(--muted);
+  font-style: italic;
 }
 
 .quote-notice {

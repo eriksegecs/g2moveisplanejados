@@ -160,6 +160,7 @@
   const sumEdgeSidesEl = document.getElementById("sum-edge-sides");
   const sumEdgeLengthEl = document.getElementById("sum-edge-length");
   const sumEdgeMaterialCostEl = document.getElementById("sum-edge-material-cost");
+  const sumEdgeColorsEl = document.getElementById("sum-edge-colors");
   const sumEdgeLaborLengthEl = document.getElementById("sum-edge-labor-length");
   const sumEdgeLaborCostEl = document.getElementById("sum-edge-labor-cost");
 
@@ -957,17 +958,42 @@
 
     let edgeBandLengthMmTotal = 0;
     let edgeBandSideCount = 0;
+    const edgeBandColorGroups = new Map();
     layouts.forEach((layout) => {
       layout.items.forEach((item) => {
         const sides = normalizeEdgeSides(item.edgeSides);
+        const itemLengthMm = edgeBandLengthMm(item);
         edgeBandSideCount += sides.length;
-        edgeBandLengthMmTotal += edgeBandLengthMm(item);
+        edgeBandLengthMmTotal += itemLengthMm;
+        if (sides.length) {
+          const color = String(item.edgeBandColor || "Não informada").trim() || "Não informada";
+          const colorKey = normalizeColorKey(color);
+          if (!edgeBandColorGroups.has(colorKey)) {
+            edgeBandColorGroups.set(colorKey, { color: color, sideCount: 0, lengthMm: 0 });
+          }
+          const colorGroup = edgeBandColorGroups.get(colorKey);
+          colorGroup.sideCount += sides.length;
+          colorGroup.lengthMm += itemLengthMm;
+        }
       });
     });
     const edgeBandLengthM = edgeBandLengthMmTotal / 1000;
     const edgeBandMaterialCostTotal = edgeBandLengthM * settings.edgeBandMaterialRate;
     const edgeBandLaborCostTotal = edgeBandLengthM * settings.edgeBandLaborRate;
     const edgeBandCostTotal = edgeBandMaterialCostTotal + edgeBandLaborCostTotal;
+    const edgeBandColorBreakdown = Array.from(edgeBandColorGroups.values())
+      .map((group) => {
+        const lengthM = group.lengthMm / 1000;
+        return {
+          color: group.color,
+          sideCount: group.sideCount,
+          lengthM: lengthM,
+          materialCost: lengthM * settings.edgeBandMaterialRate,
+          laborCost: lengthM * settings.edgeBandLaborRate,
+          totalCost: lengthM * (settings.edgeBandMaterialRate + settings.edgeBandLaborRate),
+        };
+      })
+      .sort((a, b) => a.color.localeCompare(b.color, "pt-BR", { sensitivity: "base" }));
 
     let whiteTxPieceAreaM2 = 0;
     let whiteTxPieceCostTotal = 0;
@@ -1000,6 +1026,7 @@
       edgeBandCostTotal: edgeBandCostTotal,
       edgeBandMaterialCostTotal: edgeBandMaterialCostTotal,
       edgeBandLaborCostTotal: edgeBandLaborCostTotal,
+      edgeBandColorBreakdown: edgeBandColorBreakdown,
       edgeBandLengthM: edgeBandLengthM,
       edgeBandSideCount: edgeBandSideCount,
       cutMode: settings.cutMode,
@@ -1181,6 +1208,7 @@
       sumEdgeSidesEl.textContent = "0";
       sumEdgeLengthEl.textContent = "0,00";
       sumEdgeMaterialCostEl.textContent = "0,00";
+      sumEdgeColorsEl.innerHTML = '<span class="edge-color-empty">Nenhuma fita selecionada.</span>';
       sumEdgeLaborLengthEl.textContent = "0,00";
       sumEdgeLaborCostEl.textContent = "0,00";
       sumMethodEl.textContent = "custom-maxrects";
@@ -1204,6 +1232,11 @@
     sumEdgeSidesEl.textContent = String(result.edgeBandSideCount);
     sumEdgeLengthEl.textContent = formatDecimal(result.edgeBandLengthM);
     sumEdgeMaterialCostEl.textContent = formatDecimal(result.edgeBandMaterialCostTotal);
+    sumEdgeColorsEl.innerHTML = result.edgeBandColorBreakdown.length
+      ? result.edgeBandColorBreakdown.map((group) => (
+          `<div><strong>Fita ${esc(group.color)}:</strong> ${formatDecimal(group.lengthM)} m — R$ ${formatDecimal(group.materialCost)}</div>`
+        )).join("")
+      : '<span class="edge-color-empty">Nenhuma fita selecionada.</span>';
     sumEdgeLaborLengthEl.textContent = formatDecimal(result.edgeBandLengthM);
     sumEdgeLaborCostEl.textContent = formatDecimal(result.edgeBandLaborCostTotal);
     sumMethodEl.textContent = result.method + " / " + (result.cutMode === "saw" ? "seccionadora" : "router");
@@ -1389,6 +1422,10 @@
       ["Tarifa da colagem da fita (R$/m)", Number(state.result.edgeBandLaborRate || 0)],
       ["Custo da colagem da fita (R$)", Number(state.result.edgeBandLaborCostTotal || 0)],
       ["Custo total de fita e colagem (R$)", Number(state.result.edgeBandCostTotal || 0)],
+      ...state.result.edgeBandColorBreakdown.flatMap((group) => [
+        ["Fita " + group.color + " utilizada (m)", Number(group.lengthM || 0)],
+        ["Custo do material da fita " + group.color + " (R$)", Number(group.materialCost || 0)],
+      ]),
       [state.result.materialConsultationRequired ? "Subtotal estimado (R$)" : "Valor estimado (R$)", Number(state.result.totalCost || 0)],
     ];
     const summarySheet = window.XLSX.utils.aoa_to_sheet(summaryRows);
@@ -1667,6 +1704,10 @@
       state.result.materialConsultationRequired ? "Valor da chapa sob consulta: " + state.result.materialConsultationLabels.join(", ") : "Chapas diferentes de Branco TX: consultar valor",
       "Custo do corte: R$ " + formatDecimal(state.result.cutCostTotal) + (state.cutMode === "saw" ? " (" + state.result.totalCuts + " operações x R$ 3,50; inclui 4 limpezas por chapa)" : " (R$ " + formatDecimal(state.result.routerRatePerM2) + "/m²)"),
       "Fita de borda (material): " + state.result.edgeBandSideCount + " lados; " + formatDecimal(state.result.edgeBandLengthM) + " m com acréscimos; R$ " + formatDecimal(state.result.edgeBandMaterialCostTotal) + " (R$ " + formatDecimal(state.result.edgeBandMaterialRate) + "/m)",
+      "Fitas utilizadas por cor:",
+      ...(state.result.edgeBandColorBreakdown.length
+        ? state.result.edgeBandColorBreakdown.map((group) => "  - Fita " + group.color + ": " + formatDecimal(group.lengthM) + " m; material R$ " + formatDecimal(group.materialCost) + "; colagem R$ " + formatDecimal(group.laborCost))
+        : ["  - Nenhuma fita selecionada"]),
       "Colagem da fita: " + formatDecimal(state.result.edgeBandLengthM) + " m; R$ " + formatDecimal(state.result.edgeBandLaborCostTotal) + " (R$ " + formatDecimal(state.result.edgeBandLaborRate) + "/m)",
       "Total de fita e colagem: R$ " + formatDecimal(state.result.edgeBandCostTotal),
       (state.result.materialConsultationRequired ? "Subtotal estimado: R$ " : "Valor estimado: R$ ") + formatDecimal(estimatedValue),
@@ -1947,6 +1988,11 @@
         "</tr>",
       ].join("");
     }).join("");
+    const edgeColorRows = result.edgeBandColorBreakdown.length
+      ? result.edgeBandColorBreakdown.map((group) => (
+          `<div><strong>Fita ${esc(group.color)}</strong><span>${formatDecimal(group.lengthM)} m</span><span>Material: R$ ${formatDecimal(group.materialCost)}</span><span>Colagem: R$ ${formatDecimal(group.laborCost)}</span></div>`
+        )).join("")
+      : "<div><span>Nenhuma fita selecionada.</span></div>";
 
     const page = document.createElement("section");
     page.className = "print-page print-summary-page";
@@ -1971,6 +2017,8 @@
       `<div><span>Colagem da fita</span><strong>R$ ${formatDecimal(result.edgeBandLaborCostTotal)}</strong><small>${formatDecimal(result.edgeBandLengthM)} m × R$ ${formatDecimal(result.edgeBandLaborRate)}</small></div>`,
       `<div class="print-total"><span>${totalLabel}</span><strong>R$ ${formatDecimal(result.totalCost)}</strong></div>`,
       "</div>",
+      '<h2 class="print-section-title">Fitas utilizadas por cor</h2>',
+      `<div class="print-edge-colors">${edgeColorRows}</div>`,
       `<div class="print-consultation">${esc(consultation)}</div>`,
       '<h2 class="print-section-title">Peças do projeto</h2>',
       '<table class="print-items-table">',
