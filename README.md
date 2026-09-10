@@ -25,7 +25,7 @@ Aplicação 100% frontend para orçamento, plano de corte e fita de borda, sem F
 - A lógica de seccionadora permanece preservada no código para reativação futura, mas não pode ser selecionada nesta versão.
 - O orçamento não cobra o valor da chapa inteira. Para Branco TX, utiliza a área das peças: R$ 38,00/m² em 6 mm, R$ 54,00/m² em 15 mm e R$ 58,00/m² em 18 mm.
 - Cores diferentes de Branco TX e espessuras sem tarifa cadastrada ficam marcadas como valor da chapa sob consulta.
-- A colagem da fita de borda custa R$ 2,50 por metro, com acréscimo de 50 mm em cada lado selecionado.
+- O material da fita de borda custa R$ 0,65 por metro e a colagem custa R$ 2,50 por metro. Os dois valores usam o comprimento calculado com acréscimo de 50 mm em cada lado selecionado.
 - Os lados com fita aparecem no plano de corte, no gabarito lateral, na impressão, no e-mail e na planilha Excel.
 - O botão `Imprimir orçamento em PDF` gera uma primeira página com cliente, custos e peças, seguida pelos planos de corte; a caixa de impressão do navegador permite salvar o resultado em PDF.
 

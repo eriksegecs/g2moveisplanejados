@@ -8,7 +8,8 @@
     cutWidthRouter: 14,
     panelCost: 350,
     cutCostSaw: 3.5,
-    edgeBandRate: 2.5,
+    edgeBandMaterialRate: 0.65,
+    edgeBandLaborRate: 2.5,
     edgeBandAllowance: 50,
     whiteTxPieceRate: {
       "6": 38,
@@ -158,7 +159,9 @@
   const sumCutCostEl = document.getElementById("sum-cut-cost");
   const sumEdgeSidesEl = document.getElementById("sum-edge-sides");
   const sumEdgeLengthEl = document.getElementById("sum-edge-length");
-  const sumEdgeCostEl = document.getElementById("sum-edge-cost");
+  const sumEdgeMaterialCostEl = document.getElementById("sum-edge-material-cost");
+  const sumEdgeLaborLengthEl = document.getElementById("sum-edge-labor-length");
+  const sumEdgeLaborCostEl = document.getElementById("sum-edge-labor-cost");
 
   const toggleLabelsEl = document.getElementById("toggle-labels");
   const toggleDimensionsEl = document.getElementById("toggle-dimensions");
@@ -962,7 +965,9 @@
       });
     });
     const edgeBandLengthM = edgeBandLengthMmTotal / 1000;
-    const edgeBandCostTotal = edgeBandLengthM * settings.edgeBandRate;
+    const edgeBandMaterialCostTotal = edgeBandLengthM * settings.edgeBandMaterialRate;
+    const edgeBandLaborCostTotal = edgeBandLengthM * settings.edgeBandLaborRate;
+    const edgeBandCostTotal = edgeBandMaterialCostTotal + edgeBandLaborCostTotal;
 
     let whiteTxPieceAreaM2 = 0;
     let whiteTxPieceCostTotal = 0;
@@ -993,12 +998,15 @@
       materialConsultationLabels: Array.from(materialConsultations),
       cutCostTotal: cutCostTotal,
       edgeBandCostTotal: edgeBandCostTotal,
+      edgeBandMaterialCostTotal: edgeBandMaterialCostTotal,
+      edgeBandLaborCostTotal: edgeBandLaborCostTotal,
       edgeBandLengthM: edgeBandLengthM,
       edgeBandSideCount: edgeBandSideCount,
       cutMode: settings.cutMode,
       cutUnitPrice: settings.cutMode === "saw" ? settings.cutCostSaw : null,
       routerRatePerM2: settings.cutMode === "router" ? settings.routerRate["6"] : null,
-      edgeBandRate: settings.edgeBandRate,
+      edgeBandMaterialRate: settings.edgeBandMaterialRate,
+      edgeBandLaborRate: settings.edgeBandLaborRate,
       edgeBandAllowance: settings.edgeBandAllowance,
       method: settings.cutMode === "saw" ? "guilhotina-vertical" : "custom-maxrects",
       layouts: layouts,
@@ -1172,7 +1180,9 @@
       sumCutCostEl.textContent = "0,00";
       sumEdgeSidesEl.textContent = "0";
       sumEdgeLengthEl.textContent = "0,00";
-      sumEdgeCostEl.textContent = "0,00";
+      sumEdgeMaterialCostEl.textContent = "0,00";
+      sumEdgeLaborLengthEl.textContent = "0,00";
+      sumEdgeLaborCostEl.textContent = "0,00";
       sumMethodEl.textContent = "custom-maxrects";
       return;
     }
@@ -1193,7 +1203,9 @@
     sumCutCostEl.textContent = formatDecimal(result.cutCostTotal);
     sumEdgeSidesEl.textContent = String(result.edgeBandSideCount);
     sumEdgeLengthEl.textContent = formatDecimal(result.edgeBandLengthM);
-    sumEdgeCostEl.textContent = formatDecimal(result.edgeBandCostTotal);
+    sumEdgeMaterialCostEl.textContent = formatDecimal(result.edgeBandMaterialCostTotal);
+    sumEdgeLaborLengthEl.textContent = formatDecimal(result.edgeBandLengthM);
+    sumEdgeLaborCostEl.textContent = formatDecimal(result.edgeBandLaborCostTotal);
     sumMethodEl.textContent = result.method + " / " + (result.cutMode === "saw" ? "seccionadora" : "router");
   }
 
@@ -1371,9 +1383,12 @@
       ["Valor de chapa sob consulta", state.result.materialConsultationRequired ? state.result.materialConsultationLabels.join(", ") : "Não"],
       ["Custo do corte (R$)", Number(state.result.cutCostTotal || 0)],
       ["Quantidade de lados com fita", state.result.edgeBandSideCount],
-      ["Fita para colagem, com acréscimos (m)", Number(state.result.edgeBandLengthM || 0)],
-      ["Tarifa da colagem da fita (R$/m)", Number(state.result.edgeBandRate || 0)],
-      ["Custo da colagem da fita (R$)", Number(state.result.edgeBandCostTotal || 0)],
+      ["Fita de borda, com acréscimos (m)", Number(state.result.edgeBandLengthM || 0)],
+      ["Tarifa do material da fita (R$/m)", Number(state.result.edgeBandMaterialRate || 0)],
+      ["Custo do material da fita (R$)", Number(state.result.edgeBandMaterialCostTotal || 0)],
+      ["Tarifa da colagem da fita (R$/m)", Number(state.result.edgeBandLaborRate || 0)],
+      ["Custo da colagem da fita (R$)", Number(state.result.edgeBandLaborCostTotal || 0)],
+      ["Custo total de fita e colagem (R$)", Number(state.result.edgeBandCostTotal || 0)],
       [state.result.materialConsultationRequired ? "Subtotal estimado (R$)" : "Valor estimado (R$)", Number(state.result.totalCost || 0)],
     ];
     const summarySheet = window.XLSX.utils.aoa_to_sheet(summaryRows);
@@ -1424,7 +1439,9 @@
       "Cor da fita de borda",
       "Lados com fita",
       "Fita para colagem (mm)",
+      "Custo do material da fita (R$)",
       "Custo da colagem (R$)",
+      "Custo total da fita (R$)",
     ]];
     state.result.layouts.forEach((layout, panelIndex) => {
       layout.items.forEach((item) => {
@@ -1442,13 +1459,15 @@
           item.edgeBandColor || "",
           edgeSideNames(item.edgeSides, false),
           edgeBandLengthMm(item),
-          (edgeBandLengthMm(item) / 1000) * DEFAULTS.edgeBandRate,
+          (edgeBandLengthMm(item) / 1000) * DEFAULTS.edgeBandMaterialRate,
+          (edgeBandLengthMm(item) / 1000) * DEFAULTS.edgeBandLaborRate,
+          (edgeBandLengthMm(item) / 1000) * (DEFAULTS.edgeBandMaterialRate + DEFAULTS.edgeBandLaborRate),
         ]);
       });
     });
     const templateSheet = window.XLSX.utils.aoa_to_sheet(templateRows);
     templateSheet["!autofilter"] = { ref: templateSheet["!ref"] };
-    setSheetColumns(templateSheet, [10, 28, 16, 26, 18, 12, 12, 16, 16, 14, 24, 38, 24, 24]);
+    setSheetColumns(templateSheet, [10, 28, 16, 26, 18, 12, 12, 16, 16, 14, 24, 38, 24, 28, 24, 24]);
     window.XLSX.utils.book_append_sheet(workbook, templateSheet, "Gabarito");
 
     const cutRows = [[
@@ -1507,8 +1526,11 @@
       "Medida da peça (mm)",
       "Acréscimo (mm)",
       "Comprimento cobrado (mm)",
-      "Valor por metro (R$)",
-      "Custo (R$)",
+      "Material por metro (R$)",
+      "Custo do material (R$)",
+      "Colagem por metro (R$)",
+      "Custo da colagem (R$)",
+      "Custo total (R$)",
     ]];
     state.result.layouts.forEach((layout, panelIndex) => {
       layout.items.forEach((item) => {
@@ -1524,15 +1546,18 @@
             Math.round(pieceLength),
             DEFAULTS.edgeBandAllowance,
             Math.round(chargedLength),
-            DEFAULTS.edgeBandRate,
-            (chargedLength / 1000) * DEFAULTS.edgeBandRate,
+            DEFAULTS.edgeBandMaterialRate,
+            (chargedLength / 1000) * DEFAULTS.edgeBandMaterialRate,
+            DEFAULTS.edgeBandLaborRate,
+            (chargedLength / 1000) * DEFAULTS.edgeBandLaborRate,
+            (chargedLength / 1000) * (DEFAULTS.edgeBandMaterialRate + DEFAULTS.edgeBandLaborRate),
           ]);
         });
       });
     });
     const edgeSheet = window.XLSX.utils.aoa_to_sheet(edgeRows);
     edgeSheet["!autofilter"] = { ref: edgeSheet["!ref"] };
-    setSheetColumns(edgeSheet, [10, 28, 24, 16, 24, 18, 26, 22, 16]);
+    setSheetColumns(edgeSheet, [10, 28, 24, 16, 24, 18, 26, 24, 24, 24, 24, 20]);
     window.XLSX.utils.book_append_sheet(workbook, edgeSheet, "Fitas de borda");
 
     const output = window.XLSX.write(workbook, {
@@ -1641,7 +1666,9 @@
       "Peças Branco TX: " + formatDecimal(state.result.whiteTxPieceAreaM2) + " m²; R$ " + formatDecimal(state.result.whiteTxPieceCostTotal) + " (6 mm: R$ 38,00/m²; 15 mm: R$ 54,00/m²; 18 mm: R$ 58,00/m²)",
       state.result.materialConsultationRequired ? "Valor da chapa sob consulta: " + state.result.materialConsultationLabels.join(", ") : "Chapas diferentes de Branco TX: consultar valor",
       "Custo do corte: R$ " + formatDecimal(state.result.cutCostTotal) + (state.cutMode === "saw" ? " (" + state.result.totalCuts + " operações x R$ 3,50; inclui 4 limpezas por chapa)" : " (R$ " + formatDecimal(state.result.routerRatePerM2) + "/m²)"),
-      "Fita de borda: " + state.result.edgeBandSideCount + " lados; " + formatDecimal(state.result.edgeBandLengthM) + " m com acréscimos; R$ " + formatDecimal(state.result.edgeBandCostTotal) + " (R$ " + formatDecimal(state.result.edgeBandRate) + "/m)",
+      "Fita de borda (material): " + state.result.edgeBandSideCount + " lados; " + formatDecimal(state.result.edgeBandLengthM) + " m com acréscimos; R$ " + formatDecimal(state.result.edgeBandMaterialCostTotal) + " (R$ " + formatDecimal(state.result.edgeBandMaterialRate) + "/m)",
+      "Colagem da fita: " + formatDecimal(state.result.edgeBandLengthM) + " m; R$ " + formatDecimal(state.result.edgeBandLaborCostTotal) + " (R$ " + formatDecimal(state.result.edgeBandLaborRate) + "/m)",
+      "Total de fita e colagem: R$ " + formatDecimal(state.result.edgeBandCostTotal),
       (state.result.materialConsultationRequired ? "Subtotal estimado: R$ " : "Valor estimado: R$ ") + formatDecimal(estimatedValue),
       "Unidade de medida: milímetros (mm)",
       "Anexos: planilha Excel completa e CSV de produção no formato da OP de referência.",
@@ -1940,7 +1967,8 @@
       `<div><span>Peças posicionadas</span><strong>${result.raw.placedCount}</strong></div>`,
       `<div><span>Material Branco TX</span><strong>R$ ${formatDecimal(result.whiteTxPieceCostTotal)}</strong><small>${formatDecimal(result.whiteTxPieceAreaM2)} m²</small></div>`,
       `<div><span>Corte Router</span><strong>R$ ${formatDecimal(result.cutCostTotal)}</strong><small>${result.totalCuts} trajetórias</small></div>`,
-      `<div><span>Colagem de fita</span><strong>R$ ${formatDecimal(result.edgeBandCostTotal)}</strong><small>${formatDecimal(result.edgeBandLengthM)} m</small></div>`,
+      `<div><span>Material da fita</span><strong>R$ ${formatDecimal(result.edgeBandMaterialCostTotal)}</strong><small>${formatDecimal(result.edgeBandLengthM)} m × R$ ${formatDecimal(result.edgeBandMaterialRate)}</small></div>`,
+      `<div><span>Colagem da fita</span><strong>R$ ${formatDecimal(result.edgeBandLaborCostTotal)}</strong><small>${formatDecimal(result.edgeBandLengthM)} m × R$ ${formatDecimal(result.edgeBandLaborRate)}</small></div>`,
       `<div class="print-total"><span>${totalLabel}</span><strong>R$ ${formatDecimal(result.totalCost)}</strong></div>`,
       "</div>",
       `<div class="print-consultation">${esc(consultation)}</div>`,
@@ -2127,7 +2155,8 @@
       cutWidth: DEFAULTS.cutWidthRouter,
       panelCost: DEFAULTS.panelCost,
       cutCostSaw: DEFAULTS.cutCostSaw,
-      edgeBandRate: DEFAULTS.edgeBandRate,
+      edgeBandMaterialRate: DEFAULTS.edgeBandMaterialRate,
+      edgeBandLaborRate: DEFAULTS.edgeBandLaborRate,
       edgeBandAllowance: DEFAULTS.edgeBandAllowance,
       whiteTxPieceRate: DEFAULTS.whiteTxPieceRate,
       routerRate: DEFAULTS.routerRate,
