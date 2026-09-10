@@ -17,7 +17,7 @@
   <meta name="twitter:description" content="Orçamento, plano de corte e cálculo de fita de borda em um só lugar.">
   <meta name="twitter:image" content="https://eriksegecs.github.io/g2moveisplanejados/assets/og.png?v=vortex-20260901">
   <meta name="twitter:image:alt" content="Vortex MDF — O corte exato do seu projeto.">
-  <link rel="stylesheet" href="./styles.css?v=2026.09.03.2">
+  <link rel="stylesheet" href="./styles.css?v=2026.09.10.1">
 </head>
 <body>
   <main class="opcut-screen">
@@ -25,8 +25,9 @@
       <div class="opcut-brand"><strong>Vortex MDF</strong><span>O corte exato do seu projeto.</span></div>
       <div class="opcut-actions">
         <button class="btn btn-share" id="share-link-btn" type="button">Compartilhar</button>
-        <button class="btn btn-highlight" id="request-order-btn" type="button">Solicitar orçamento</button>
-        <button class="btn btn-outline" id="print-panels-btn" type="button">Imprimir painéis</button>
+        <button class="btn btn-highlight" id="request-order-btn" type="button">Enviar orçamento</button>
+        <button class="btn btn-outline" id="print-quote-btn" type="button">Imprimir orçamento em PDF</button>
+        <button class="btn btn-outline" id="print-panels-btn" type="button">Imprimir apenas painéis</button>
       </div>
     </header>
 
@@ -57,11 +58,11 @@
       hidden
     >
       <div class="share-box-header">
-        <span id="order-confirm-title">Confirmar solicitação</span>
+        <span id="order-confirm-title">Confirmar envio</span>
         <button id="order-confirm-close-btn" class="btn btn-ghost" type="button">Fechar</button>
       </div>
       <div class="share-box-body">
-        <p>Revise o envio antes de solicitar o orçamento.</p>
+        <p>Revise os dados antes de enviar o orçamento.</p>
         <dl class="order-confirm-details">
           <div><dt>Destinatário</dt><dd id="order-confirm-recipient">vortexmdf01@gmail.com</dd></div>
           <div><dt>Anexos</dt><dd>Planilha Excel completa e CSV no formato da ordem de produção</dd></div>
@@ -90,7 +91,6 @@
           <label>Tipo de corte
             <select id="cut-mode-select" class="item-select">
               <option value="router">Router</option>
-              <option value="saw">Seccionadora</option>
             </select>
           </label>
         </div>
@@ -164,11 +164,11 @@
 
   <footer class="site-footer" aria-label="Versão do site">
     <span>Vortex MDF</span>
-    <span class="site-version">Versão 2026.09.03.2</span>
+    <span class="site-version">Versão 2026.09.10.1</span>
   </footer>
 
   <div id="print-area" class="print-area" hidden></div>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-  <script src="./app.js?v=2026.09.03.2"></script>
+  <script src="./app.js?v=2026.09.10.1"></script>
 </body>
 </html>

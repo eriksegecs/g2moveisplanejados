@@ -19,18 +19,19 @@ Aplicação 100% frontend para orçamento, plano de corte e fita de borda, sem F
 - A janela `Compartilhar` permite copiar o link, usar o compartilhamento do dispositivo e baixar o CSV da ordem de produção com a configuração atual.
 - O layout é recalculado automaticamente a cada alteração.
 - As chapas calculadas são exibidas individualmente por abas, sem navegação lateral.
-- As peças são separadas em painéis diferentes conforme a combinação de cor e espessura.
-- O tipo de corte pode ser `Router` ou `Seccionadora`.
+- As peças são separadas em painéis diferentes conforme a combinação de marca, cor e espessura.
+- Temporariamente, o único tipo de corte disponível na interface é `Router`; links antigos configurados para seccionadora também são convertidos para Router.
 - Na Router, são consideradas quatro trajetórias por peça e o serviço custa R$ 30,00 por m² cortado, em todas as espessuras.
-- Na seccionadora, o layout organiza as peças em tiras verticais e prioriza o encaixe de outras peças na mesma tira. Cada corte vai até o fim da chapa ou da tira correspondente; uma operação já executada não é contada novamente. A limpeza das quatro bordas é contabilizada uma vez por chapa e cada operação custa R$ 3,50.
+- A lógica de seccionadora permanece preservada no código para reativação futura, mas não pode ser selecionada nesta versão.
 - O orçamento não cobra o valor da chapa inteira. Para Branco TX, utiliza a área das peças: R$ 38,00/m² em 6 mm, R$ 54,00/m² em 15 mm e R$ 58,00/m² em 18 mm.
 - Cores diferentes de Branco TX e espessuras sem tarifa cadastrada ficam marcadas como valor da chapa sob consulta.
 - A colagem da fita de borda custa R$ 2,50 por metro, com acréscimo de 50 mm em cada lado selecionado.
 - Os lados com fita aparecem no plano de corte, no gabarito lateral, na impressão, no e-mail e na planilha Excel.
+- O botão `Imprimir orçamento em PDF` gera uma primeira página com cliente, custos e peças, seguida pelos planos de corte; a caixa de impressão do navegador permite salvar o resultado em PDF.
 
 ## Solicitação por e-mail
 
-O botão `Solicitar orçamento` abre uma confirmação e envia para `vortexmdf01@gmail.com`:
+O botão `Enviar orçamento` abre uma confirmação e envia para `vortexmdf01@gmail.com`:
 
 - dados do cliente e resumo completo dos custos;
 - link compartilhável da configuração;

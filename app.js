@@ -420,7 +420,7 @@
       '<input type="text" name="item_label" class="item-label-input" maxlength="40" placeholder="Ex.: Porta direita" aria-label="ID da peça">',
       '<input type="text" name="item_width" minlength="1" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="mm" aria-label="Largura em milímetros" required>',
       '<input type="text" name="item_height" minlength="1" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="mm" aria-label="Altura em milímetros" required>',
-      '<input type="number" name="item_qty" min="1" value="1" required>',
+      '<input type="number" name="item_qty" min="1" max="999" inputmode="numeric" value="1" aria-label="Quantidade da peça" required>',
       '<select name="item_thickness" class="item-select" aria-label="Espessura em milímetros"><option value="6">6 mm</option><option value="15">15 mm</option><option value="18">18 mm</option></select>',
       '<select name="item_brand" class="item-select item-brand-select" aria-label="Marca da peça">' + brandOptionsHtml() + '</select>',
       '<input type="text" name="item_color" class="item-color-input" maxlength="50" list="color-name-options-arauco" placeholder="Nome da cor" aria-label="Nome da cor" required>',
@@ -1704,14 +1704,14 @@
       calculate();
     }
     if (!state.result || !state.result.layouts.length) {
-      alert("Adicione ao menos uma placa válida antes de solicitar o orçamento.");
+      alert("Adicione ao menos uma peça válida antes de gerar o orçamento.");
       return;
     }
 
     const name = (document.getElementById("lead-name")?.value || "").trim();
     const phone = (document.getElementById("lead-phone")?.value || "").trim();
     if (!name || !phone) {
-      alert("Informe nome e telefone antes de solicitar o orçamento.");
+      alert("Informe nome e telefone antes de gerar o orçamento.");
       return;
     }
     const missingEdgeColor = readItemsFromForm().some((item) => item.edgeSides.length && !item.edgeBandColor);
@@ -1774,7 +1774,7 @@
     }));
     return {
       brand: items[0]?.brand || state.selectedBrand,
-      cutMode: state.cutMode,
+      cutMode: "router",
       lead: {
         name: (document.getElementById("lead-name")?.value || "").trim(),
         phone: (document.getElementById("lead-phone")?.value || "").trim(),
@@ -1786,7 +1786,7 @@
   function applySharePayload(payload) {
     if (!payload || !Array.isArray(payload.items)) return;
     state.selectedBrand = normalizeBrand(payload.brand || state.selectedBrand);
-    state.cutMode = payload.cutMode === "saw" ? "saw" : "router";
+    state.cutMode = "router";
     const cutModeSelect = document.getElementById("cut-mode-select");
     if (cutModeSelect) cutModeSelect.value = state.cutMode;
     const leadName = document.getElementById("lead-name");
@@ -1895,20 +1895,82 @@
     }
   }
 
-  function buildPrintPages() {
+  function buildPrintSummaryPage(printArea) {
+    const result = state.result;
+    const name = String(document.getElementById("lead-name")?.value || "").trim() || "Não informado";
+    const phone = String(document.getElementById("lead-phone")?.value || "").trim() || "Não informado";
+    const items = readItemsFromForm();
+    const totalLabel = result.materialConsultationRequired ? "Subtotal estimado" : "Valor estimado";
+    const consultation = result.materialConsultationRequired
+      ? "Materiais sob consulta: " + result.materialConsultationLabels.join(", ") + "."
+      : "Chapas diferentes de Branco TX devem ter o valor consultado.";
+    const itemRows = items.map((item) => {
+      const edgeInfo = normalizeEdgeSides(item.edgeSides).length
+        ? (item.edgeBandColor || "Não informada") + " - " + edgeSideNames(item.edgeSides, true)
+        : "Sem fita";
+      return [
+        "<tr>",
+        `<td>${esc(item.label)}</td>`,
+        `<td>${Number(item.quantity || 0)}</td>`,
+        `<td>${esc(brandLabel(item.brand))}</td>`,
+        `<td>${esc(item.color || "Sem cor")}</td>`,
+        `<td>${esc(item.thickness || "6")} mm</td>`,
+        `<td>${Math.round(item.width)} x ${Math.round(item.height)} mm</td>`,
+        `<td>${esc(edgeInfo)}</td>`,
+        "</tr>",
+      ].join("");
+    }).join("");
+
+    const page = document.createElement("section");
+    page.className = "print-page print-summary-page";
+    page.innerHTML = [
+      '<header class="print-quote-header">',
+      '<div><strong>VORTEX MDF</strong><span>O corte exato do seu projeto.</span></div>',
+      '<div class="print-document-type">ORÇAMENTO</div>',
+      "</header>",
+      '<div class="print-customer-grid">',
+      `<div><span>Cliente</span><strong>${esc(name)}</strong></div>`,
+      `<div><span>Telefone</span><strong>${esc(phone)}</strong></div>`,
+      `<div><span>Emissão</span><strong>${esc(new Date().toLocaleString("pt-BR"))}</strong></div>`,
+      '<div><span>Tipo de corte</span><strong>Router</strong></div>',
+      "</div>",
+      '<h2 class="print-section-title">Resumo</h2>',
+      '<div class="print-summary-grid">',
+      `<div><span>Chapas necessárias</span><strong>${result.totalPanels}</strong></div>`,
+      `<div><span>Peças posicionadas</span><strong>${result.raw.placedCount}</strong></div>`,
+      `<div><span>Material Branco TX</span><strong>R$ ${formatDecimal(result.whiteTxPieceCostTotal)}</strong><small>${formatDecimal(result.whiteTxPieceAreaM2)} m²</small></div>`,
+      `<div><span>Corte Router</span><strong>R$ ${formatDecimal(result.cutCostTotal)}</strong><small>${result.totalCuts} trajetórias</small></div>`,
+      `<div><span>Colagem de fita</span><strong>R$ ${formatDecimal(result.edgeBandCostTotal)}</strong><small>${formatDecimal(result.edgeBandLengthM)} m</small></div>`,
+      `<div class="print-total"><span>${totalLabel}</span><strong>R$ ${formatDecimal(result.totalCost)}</strong></div>`,
+      "</div>",
+      `<div class="print-consultation">${esc(consultation)}</div>`,
+      '<h2 class="print-section-title">Peças do projeto</h2>',
+      '<table class="print-items-table">',
+      "<thead><tr><th>ID</th><th>Qtd.</th><th>Marca</th><th>Cor</th><th>Esp.</th><th>Medidas</th><th>Fita de borda</th></tr></thead>",
+      `<tbody>${itemRows}</tbody>`,
+      "</table>",
+      '<footer class="print-note">Valores estimados. Os planos de corte correspondentes seguem nas próximas páginas.</footer>',
+    ].join("");
+    printArea.appendChild(page);
+  }
+
+  function buildPrintPages(options) {
     const printArea = document.getElementById("print-area");
     if (!printArea) return;
     printArea.innerHTML = "";
+    if (options?.includeQuoteSummary) buildPrintSummaryPage(printArea);
 
     state.result.layouts.forEach((layout, panelIndex) => {
       const page = document.createElement("div");
-      page.className = "print-page";
+      page.className = "print-page print-panel-page";
 
       const title = document.createElement("div");
       title.className = "print-title";
       title.textContent =
         "Vortex MDF | Painel " +
         (panelIndex + 1) +
+        " - " +
+        brandLabel(layout.brand) +
         " - " +
         (layout.color || "Sem cor") +
         " - " +
@@ -2016,13 +2078,32 @@
     });
   }
 
+  function printDocument(title) {
+    const printArea = document.getElementById("print-area");
+    const previousTitle = document.title;
+    if (printArea) printArea.hidden = false;
+    document.title = title;
+    window.print();
+    document.title = previousTitle;
+    if (printArea) printArea.hidden = true;
+  }
+
+  function printQuote() {
+    if (!state.result || !state.result.layouts.length) {
+      alert("Calcule o layout antes de imprimir o orçamento.");
+      return;
+    }
+    buildPrintPages({ includeQuoteSummary: true });
+    printDocument("Orçamento Vortex MDF");
+  }
+
   function printPanels() {
     if (!state.result || !state.result.layouts.length) {
       alert("Calcule o layout antes de imprimir.");
       return;
     }
-    buildPrintPages();
-    window.print();
+    buildPrintPages({ includeQuoteSummary: false });
+    printDocument("Planos de corte Vortex MDF");
   }
 
   function loadFromHash() {
@@ -2039,10 +2120,11 @@
   }
 
   function calculate() {
+    state.cutMode = "router";
     const settings = {
       panelWidth: DEFAULTS.panelWidth,
       panelHeight: DEFAULTS.panelHeight,
-      cutWidth: state.cutMode === "router" ? DEFAULTS.cutWidthRouter : DEFAULTS.cutWidthSaw,
+      cutWidth: DEFAULTS.cutWidthRouter,
       panelCost: DEFAULTS.panelCost,
       cutCostSaw: DEFAULTS.cutCostSaw,
       edgeBandRate: DEFAULTS.edgeBandRate,
@@ -2050,7 +2132,7 @@
       whiteTxPieceRate: DEFAULTS.whiteTxPieceRate,
       routerRate: DEFAULTS.routerRate,
       routerMax: DEFAULTS.routerMax,
-      cutMode: state.cutMode,
+      cutMode: "router",
     };
     if (settings.panelWidth <= 0 || settings.panelHeight <= 0) {
       alert("Painel largura/altura devem ser maiores que zero.");
@@ -2184,6 +2266,7 @@
   document.getElementById("order-confirm-close-btn")?.addEventListener("click", closeOrderConfirmation);
   document.getElementById("order-confirm-overlay")?.addEventListener("click", closeOrderConfirmation);
   document.getElementById("share-link-btn").addEventListener("click", generateShareLink);
+  document.getElementById("print-quote-btn").addEventListener("click", printQuote);
   document.getElementById("print-panels-btn").addEventListener("click", printPanels);
 
   document.addEventListener("keydown", function (event) {
@@ -2193,7 +2276,8 @@
   const cutModeSelectEl = document.getElementById("cut-mode-select");
   if (cutModeSelectEl) {
     cutModeSelectEl.addEventListener("change", function () {
-      state.cutMode = cutModeSelectEl.value === "saw" ? "saw" : "router";
+      state.cutMode = "router";
+      cutModeSelectEl.value = "router";
       scheduleCalculate();
     });
   }

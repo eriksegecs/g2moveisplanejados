@@ -278,6 +278,11 @@ summary:focus-visible {
 }
 
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
   body {
     background: #fff;
     padding: 0;
@@ -304,6 +309,163 @@ summary:focus-visible {
     padding: 12mm;
     box-sizing: border-box;
     color: #000;
+  }
+
+  .print-page:last-child {
+    page-break-after: auto;
+  }
+
+  .print-summary-page {
+    height: auto;
+    min-height: 297mm;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+  .print-quote-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10mm;
+    padding-bottom: 6mm;
+    border-bottom: 1.5mm solid #174f44;
+  }
+
+  .print-quote-header > div:first-child {
+    display: grid;
+    gap: 1mm;
+  }
+
+  .print-quote-header strong {
+    color: #174f44;
+    font-size: 18pt;
+    letter-spacing: 0.08em;
+  }
+
+  .print-quote-header span {
+    color: #555;
+    font-size: 9pt;
+  }
+
+  .print-document-type {
+    padding: 2.5mm 4mm;
+    border: 0.5mm solid #174f44;
+    color: #174f44;
+    font-size: 10pt;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .print-customer-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 3mm 8mm;
+    margin: 7mm 0;
+  }
+
+  .print-customer-grid > div {
+    display: grid;
+    gap: 1mm;
+    padding-bottom: 2mm;
+    border-bottom: 0.2mm solid #bbb;
+  }
+
+  .print-customer-grid span,
+  .print-summary-grid span {
+    color: #555;
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .print-customer-grid strong {
+    font-size: 10pt;
+  }
+
+  .print-section-title {
+    margin: 7mm 0 3mm;
+    color: #174f44;
+    font-size: 12pt;
+  }
+
+  .print-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2.5mm;
+  }
+
+  .print-summary-grid > div {
+    display: grid;
+    gap: 1mm;
+    min-height: 20mm;
+    padding: 3mm;
+    border: 0.25mm solid #ccd7d3;
+    background: #f5f8f7;
+  }
+
+  .print-summary-grid strong {
+    font-size: 12pt;
+  }
+
+  .print-summary-grid small {
+    color: #555;
+    font-size: 8pt;
+  }
+
+  .print-summary-grid .print-total {
+    background: #174f44;
+    color: #fff;
+    border-color: #174f44;
+  }
+
+  .print-summary-grid .print-total span,
+  .print-summary-grid .print-total small {
+    color: #fff;
+  }
+
+  .print-consultation {
+    margin-top: 3mm;
+    padding: 2.5mm 3mm;
+    border-left: 1mm solid #d36f2d;
+    background: #fff7f0;
+    font-size: 8.5pt;
+  }
+
+  .print-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 8pt;
+  }
+
+  .print-items-table thead {
+    display: table-header-group;
+  }
+
+  .print-items-table th,
+  .print-items-table td {
+    padding: 2mm 1.5mm;
+    border: 0.2mm solid #bbb;
+    text-align: left;
+    overflow-wrap: anywhere;
+    vertical-align: top;
+  }
+
+  .print-items-table th {
+    background: #e9f0ed;
+    color: #174f44;
+    font-size: 7.5pt;
+  }
+
+  .print-items-table tr {
+    break-inside: avoid;
+  }
+
+  .print-note {
+    margin-top: 5mm;
+    padding-top: 3mm;
+    border-top: 0.2mm solid #aaa;
+    color: #555;
+    font-size: 8pt;
   }
 
   .print-title {
@@ -562,7 +724,7 @@ summary:focus-visible {
 .item-table-header,
 .item-row {
   display: grid;
-  grid-template-columns: minmax(124px, 1.45fr) 54px 54px 46px 60px 94px minmax(96px, 1fr) minmax(96px, 1fr) 88px 32px 30px;
+  grid-template-columns: minmax(124px, 1.45fr) 54px 54px 64px 60px 94px minmax(96px, 1fr) minmax(96px, 1fr) 88px 32px 30px;
   gap: 4px;
   align-items: center;
 }
@@ -613,9 +775,13 @@ summary:focus-visible {
 }
 
 .item-row input[name="item_qty"] {
-  min-width: 48px;
-  max-width: 56px;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  padding-left: 4px;
+  padding-right: 4px;
   text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 .item-select {
@@ -1016,8 +1182,8 @@ summary:focus-visible {
   .item-table-header,
   .item-row {
     gap: 3px;
-    grid-template-columns: 118px 52px 52px 42px 58px 88px 96px 96px 84px 32px 28px;
-    min-width: 786px;
+    grid-template-columns: 118px 52px 52px 58px 58px 88px 96px 96px 84px 32px 28px;
+    min-width: 802px;
   }
 
   .item-table-header span {
