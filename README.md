@@ -25,8 +25,9 @@ Aplicação 100% frontend para orçamento, plano de corte e fita de borda, sem F
 - A lógica de seccionadora permanece preservada no código para reativação futura, mas não pode ser selecionada nesta versão.
 - O orçamento não cobra o valor da chapa inteira. Para Branco TX, utiliza a área das peças: R$ 38,00/m² em 6 mm, R$ 54,00/m² em 15 mm e R$ 58,00/m² em 18 mm.
 - Cores diferentes de Branco TX e espessuras sem tarifa cadastrada ficam marcadas como valor da chapa sob consulta.
-- O material da fita de borda custa R$ 0,65 por metro e a colagem custa R$ 2,50 por metro. Os dois valores usam o comprimento calculado com acréscimo de 50 mm em cada lado selecionado.
-- As fitas são agrupadas por cor no orçamento, mostrando a metragem e o custo do material de cada cor separadamente.
+- O material da fita Branco TX custa R$ 0,65 por metro. Para outras cores de fita, a metragem é exibida e o valor do material fica sob consulta.
+- A colagem custa R$ 2,50 por metro independentemente da cor. Material e colagem usam o comprimento calculado com acréscimo de 50 mm em cada lado selecionado.
+- As fitas são agrupadas por cor no orçamento, mostrando a metragem e o custo conhecido ou a indicação de consulta para cada cor.
 - Os lados com fita aparecem no plano de corte, no gabarito lateral, na impressão, no e-mail e na planilha Excel.
 - O botão `Imprimir orçamento em PDF` gera uma primeira página com cliente, custos e peças, seguida pelos planos de corte; a caixa de impressão do navegador permite salvar o resultado em PDF.
 
@@ -35,12 +36,13 @@ Aplicação 100% frontend para orçamento, plano de corte e fita de borda, sem F
 O botão `Enviar orçamento` abre uma confirmação e envia para `vortexmdf01@gmail.com`:
 
 - dados do cliente e resumo completo dos custos;
+- anexo `.pdf` numerado com o orçamento e os planos de corte;
 - link compartilhável da configuração;
 - painéis, peças, medidas, cores e fitas de borda;
 - anexo `.xlsx` com as abas `Resumo`, `Painéis`, `Gabarito`, `Cortes` e `Fitas de borda`.
 - anexo `.csv` no formato da ordem de produção de referência, com 22 colunas, separador `;`, quebra de linha Windows e codificação Windows-1252.
 
-O envio usa o código oculto e ativado do FormSubmit associado a `vortexmdf01@gmail.com`, com `multipart/form-data` e campos de arquivo separados para o Excel e o CSV. A URL pública do formulário também é informada. A planilha é gerada no navegador com SheetJS 0.20.3.
+O envio usa o código oculto e ativado do FormSubmit associado a `vortexmdf01@gmail.com`, com `multipart/form-data` e campos de arquivo separados para PDF, Excel e CSV. A URL pública do formulário também é informada. O PDF é gerado no navegador com jsPDF 2.5.1 e a planilha com SheetJS 0.20.3.
 
 ## Personalização rápida
 

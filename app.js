@@ -207,6 +207,11 @@
       .replace(/[\u0300-\u036f]/g, "");
   }
 
+  function isWhiteTxColor(value) {
+    const normalized = normalizeColorKey(value);
+    return normalized === "branco tx" || normalized === "branca tx";
+  }
+
   function normalizeEdgeSides(value) {
     const sides = Array.isArray(value) ? value : [];
     return EDGE_SIDES.map((side) => side.key).filter((side) => sides.includes(side));
@@ -977,30 +982,35 @@
         }
       });
     });
-    const edgeBandLengthM = edgeBandLengthMmTotal / 1000;
-    const edgeBandMaterialCostTotal = edgeBandLengthM * settings.edgeBandMaterialRate;
-    const edgeBandLaborCostTotal = edgeBandLengthM * settings.edgeBandLaborRate;
-    const edgeBandCostTotal = edgeBandMaterialCostTotal + edgeBandLaborCostTotal;
     const edgeBandColorBreakdown = Array.from(edgeBandColorGroups.values())
       .map((group) => {
         const lengthM = group.lengthMm / 1000;
+        const hasMaterialPrice = isWhiteTxColor(group.color);
         return {
           color: group.color,
           sideCount: group.sideCount,
           lengthM: lengthM,
-          materialCost: lengthM * settings.edgeBandMaterialRate,
+          hasMaterialPrice: hasMaterialPrice,
+          materialRate: hasMaterialPrice ? settings.edgeBandMaterialRate : null,
+          materialCost: hasMaterialPrice ? lengthM * settings.edgeBandMaterialRate : 0,
           laborCost: lengthM * settings.edgeBandLaborRate,
-          totalCost: lengthM * (settings.edgeBandMaterialRate + settings.edgeBandLaborRate),
+          totalCost: lengthM * settings.edgeBandLaborRate + (hasMaterialPrice ? lengthM * settings.edgeBandMaterialRate : 0),
         };
       })
       .sort((a, b) => a.color.localeCompare(b.color, "pt-BR", { sensitivity: "base" }));
+    const edgeBandLengthM = edgeBandLengthMmTotal / 1000;
+    const edgeBandMaterialLengthM = edgeBandColorBreakdown.reduce((total, group) => total + (group.hasMaterialPrice ? group.lengthM : 0), 0);
+    const edgeBandMaterialCostTotal = edgeBandColorBreakdown.reduce((total, group) => total + group.materialCost, 0);
+    const edgeBandLaborCostTotal = edgeBandLengthM * settings.edgeBandLaborRate;
+    const edgeBandCostTotal = edgeBandMaterialCostTotal + edgeBandLaborCostTotal;
+    const edgeBandConsultationLabels = edgeBandColorBreakdown.filter((group) => !group.hasMaterialPrice).map((group) => group.color);
 
     let whiteTxPieceAreaM2 = 0;
     let whiteTxPieceCostTotal = 0;
     const materialConsultations = new Set();
     layouts.forEach((layout) => {
       const thickness = String(layout.thickness || "6");
-      const isWhiteTx = normalizeColorKey(layout.color) === normalizeColorKey("Branco TX");
+      const isWhiteTx = isWhiteTxColor(layout.color);
       const rate = isWhiteTx ? Number(settings.whiteTxPieceRate[thickness] || 0) : 0;
       if (!rate) {
         materialConsultations.add(brandLabel(layout.brand) + " - " + (layout.color || "Sem cor") + " " + thickness + " mm");
@@ -1012,6 +1022,8 @@
         whiteTxPieceCostTotal += areaM2 * rate;
       });
     });
+    const edgeBandConsultationRequired = edgeBandConsultationLabels.length > 0;
+    const quoteConsultationRequired = materialConsultations.size > 0 || edgeBandConsultationRequired;
     const totalCost = whiteTxPieceCostTotal + cutCostTotal + edgeBandCostTotal;
     return {
       totalPanels: totalPanels,
@@ -1025,8 +1037,12 @@
       cutCostTotal: cutCostTotal,
       edgeBandCostTotal: edgeBandCostTotal,
       edgeBandMaterialCostTotal: edgeBandMaterialCostTotal,
+      edgeBandMaterialLengthM: edgeBandMaterialLengthM,
       edgeBandLaborCostTotal: edgeBandLaborCostTotal,
       edgeBandColorBreakdown: edgeBandColorBreakdown,
+      edgeBandConsultationRequired: edgeBandConsultationRequired,
+      edgeBandConsultationLabels: edgeBandConsultationLabels,
+      quoteConsultationRequired: quoteConsultationRequired,
       edgeBandLengthM: edgeBandLengthM,
       edgeBandSideCount: edgeBandSideCount,
       cutMode: settings.cutMode,
@@ -1200,7 +1216,7 @@
       sumPieceAreaEl.textContent = "0,00";
       sumPieceCostEl.textContent = "0,00";
       sumTotalLabelEl.textContent = "Valor estimado:";
-      materialConsultationEl.textContent = "Para chapas diferentes de Branco TX, consulte o valor.";
+      materialConsultationEl.textContent = "Para chapas e fitas diferentes de Branco TX, consulte o valor.";
       materialConsultationEl.classList.remove("is-active");
       sumCutTypeEl.textContent = state.cutMode === "saw" ? "Seccionadora" : "Router";
       sumCutUnitEl.textContent = "cortes";
@@ -1219,22 +1235,29 @@
     sumCostEl.textContent = formatDecimal(result.totalCost);
     sumPieceAreaEl.textContent = formatDecimal(result.whiteTxPieceAreaM2);
     sumPieceCostEl.textContent = formatDecimal(result.whiteTxPieceCostTotal);
-    sumTotalLabelEl.textContent = result.materialConsultationRequired ? "Subtotal estimado:" : "Valor estimado:";
-    materialConsultationEl.textContent = result.materialConsultationRequired
-      ? "Valor da chapa sob consulta: " + result.materialConsultationLabels.join(", ") + ". O subtotal não inclui esses materiais."
-      : "Para chapas diferentes de Branco TX, consulte o valor.";
-    materialConsultationEl.classList.toggle("is-active", result.materialConsultationRequired);
+    sumTotalLabelEl.textContent = result.quoteConsultationRequired ? "Subtotal estimado:" : "Valor estimado:";
+    const consultationMessages = [];
+    if (result.materialConsultationRequired) {
+      consultationMessages.push("Valor da chapa sob consulta: " + result.materialConsultationLabels.join(", ") + ".");
+    }
+    if (result.edgeBandConsultationRequired) {
+      consultationMessages.push("Valor da fita sob consulta: " + result.edgeBandConsultationLabels.join(", ") + ".");
+    }
+    materialConsultationEl.textContent = consultationMessages.length
+      ? consultationMessages.join(" ") + " O subtotal não inclui esses materiais."
+      : "Para chapas e fitas diferentes de Branco TX, consulte o valor.";
+    materialConsultationEl.classList.toggle("is-active", result.quoteConsultationRequired);
     sumCutTypeEl.textContent = result.cutMode === "saw" ? "Seccionadora" : "Router";
     sumCutUnitEl.textContent = result.cutMode === "saw"
       ? "operações (inclui 4 limpezas/chapa) × R$ 3,50"
       : "trajetórias (4 lados por peça) • R$ " + formatDecimal(result.routerRatePerM2) + "/m²";
     sumCutCostEl.textContent = formatDecimal(result.cutCostTotal);
     sumEdgeSidesEl.textContent = String(result.edgeBandSideCount);
-    sumEdgeLengthEl.textContent = formatDecimal(result.edgeBandLengthM);
+    sumEdgeLengthEl.textContent = formatDecimal(result.edgeBandMaterialLengthM);
     sumEdgeMaterialCostEl.textContent = formatDecimal(result.edgeBandMaterialCostTotal);
     sumEdgeColorsEl.innerHTML = result.edgeBandColorBreakdown.length
       ? result.edgeBandColorBreakdown.map((group) => (
-          `<div><strong>Fita ${esc(group.color)}:</strong> ${formatDecimal(group.lengthM)} m — R$ ${formatDecimal(group.materialCost)}</div>`
+          `<div><strong>Fita ${esc(group.color)}:</strong> ${formatDecimal(group.lengthM)} m — ${group.hasMaterialPrice ? "R$ " + formatDecimal(group.materialCost) : "valor sob consulta"}</div>`
         )).join("")
       : '<span class="edge-color-empty">Nenhuma fita selecionada.</span>';
     sumEdgeLaborLengthEl.textContent = formatDecimal(result.edgeBandLengthM);
@@ -1422,11 +1445,12 @@
       ["Tarifa da colagem da fita (R$/m)", Number(state.result.edgeBandLaborRate || 0)],
       ["Custo da colagem da fita (R$)", Number(state.result.edgeBandLaborCostTotal || 0)],
       ["Custo total de fita e colagem (R$)", Number(state.result.edgeBandCostTotal || 0)],
+      ["Valor de fita sob consulta", state.result.edgeBandConsultationRequired ? state.result.edgeBandConsultationLabels.join(", ") : "Não"],
       ...state.result.edgeBandColorBreakdown.flatMap((group) => [
         ["Fita " + group.color + " utilizada (m)", Number(group.lengthM || 0)],
-        ["Custo do material da fita " + group.color + " (R$)", Number(group.materialCost || 0)],
+        ["Custo do material da fita " + group.color, group.hasMaterialPrice ? Number(group.materialCost || 0) : "Sob consulta"],
       ]),
-      [state.result.materialConsultationRequired ? "Subtotal estimado (R$)" : "Valor estimado (R$)", Number(state.result.totalCost || 0)],
+      [state.result.quoteConsultationRequired ? "Subtotal estimado (R$)" : "Valor estimado (R$)", Number(state.result.totalCost || 0)],
     ];
     const summarySheet = window.XLSX.utils.aoa_to_sheet(summaryRows);
     summarySheet["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }];
@@ -1482,6 +1506,8 @@
     ]];
     state.result.layouts.forEach((layout, panelIndex) => {
       layout.items.forEach((item) => {
+        const itemEdgeLengthM = edgeBandLengthMm(item) / 1000;
+        const hasEdgeMaterialPrice = isWhiteTxColor(item.edgeBandColor);
         templateRows.push([
           panelIndex + 1,
           String(item.label || "Item").replace(/\s*\(r\)$/, ""),
@@ -1496,9 +1522,9 @@
           item.edgeBandColor || "",
           edgeSideNames(item.edgeSides, false),
           edgeBandLengthMm(item),
-          (edgeBandLengthMm(item) / 1000) * DEFAULTS.edgeBandMaterialRate,
-          (edgeBandLengthMm(item) / 1000) * DEFAULTS.edgeBandLaborRate,
-          (edgeBandLengthMm(item) / 1000) * (DEFAULTS.edgeBandMaterialRate + DEFAULTS.edgeBandLaborRate),
+          hasEdgeMaterialPrice ? itemEdgeLengthM * DEFAULTS.edgeBandMaterialRate : "Sob consulta",
+          itemEdgeLengthM * DEFAULTS.edgeBandLaborRate,
+          hasEdgeMaterialPrice ? itemEdgeLengthM * (DEFAULTS.edgeBandMaterialRate + DEFAULTS.edgeBandLaborRate) : "Colagem calculada + material sob consulta",
         ]);
       });
     });
@@ -1575,6 +1601,7 @@
           const side = EDGE_SIDES.find((candidate) => candidate.key === sideKey);
           const pieceLength = sideKey === "top" || sideKey === "bottom" ? Number(item.width) : Number(item.height);
           const chargedLength = pieceLength + DEFAULTS.edgeBandAllowance;
+          const hasEdgeMaterialPrice = isWhiteTxColor(item.edgeBandColor);
           edgeRows.push([
             panelIndex + 1,
             String(item.label || "Item").replace(/\s*\(r\)$/, ""),
@@ -1583,11 +1610,11 @@
             Math.round(pieceLength),
             DEFAULTS.edgeBandAllowance,
             Math.round(chargedLength),
-            DEFAULTS.edgeBandMaterialRate,
-            (chargedLength / 1000) * DEFAULTS.edgeBandMaterialRate,
+            hasEdgeMaterialPrice ? DEFAULTS.edgeBandMaterialRate : "Sob consulta",
+            hasEdgeMaterialPrice ? (chargedLength / 1000) * DEFAULTS.edgeBandMaterialRate : "Sob consulta",
             DEFAULTS.edgeBandLaborRate,
             (chargedLength / 1000) * DEFAULTS.edgeBandLaborRate,
-            (chargedLength / 1000) * (DEFAULTS.edgeBandMaterialRate + DEFAULTS.edgeBandLaborRate),
+            hasEdgeMaterialPrice ? (chargedLength / 1000) * (DEFAULTS.edgeBandMaterialRate + DEFAULTS.edgeBandLaborRate) : "Colagem calculada + material sob consulta",
           ]);
         });
       });
@@ -1610,6 +1637,256 @@
     };
   }
 
+  function pdfText(value) {
+    return String(value == null ? "" : value).replace(/[\u2010-\u2015]/g, "-");
+  }
+
+  function edgeBandPdfRgb(name) {
+    const normalized = normalizeColorKey(name || "fita");
+    let hash = 0;
+    for (let index = 0; index < normalized.length; index += 1) {
+      hash = (hash * 31 + normalized.charCodeAt(index)) >>> 0;
+    }
+    const hue = (hash % 360) / 360;
+    const saturation = 0.72;
+    const lightness = 0.42;
+    const hueToRgb = (p, q, t) => {
+      let channel = t;
+      if (channel < 0) channel += 1;
+      if (channel > 1) channel -= 1;
+      if (channel < 1 / 6) return p + (q - p) * 6 * channel;
+      if (channel < 1 / 2) return q;
+      if (channel < 2 / 3) return p + (q - p) * (2 / 3 - channel) * 6;
+      return p;
+    };
+    const q = lightness < 0.5 ? lightness * (1 + saturation) : lightness + saturation - lightness * saturation;
+    const p = 2 * lightness - q;
+    return [
+      Math.round(hueToRgb(p, q, hue + 1 / 3) * 255),
+      Math.round(hueToRgb(p, q, hue) * 255),
+      Math.round(hueToRgb(p, q, hue - 1 / 3) * 255),
+    ];
+  }
+
+  function buildQuotePdf(order) {
+    const JsPdf = window.jspdf?.jsPDF;
+    if (!JsPdf) {
+      throw new Error("Não foi possível carregar o gerador do PDF. Recarregue a página e tente novamente.");
+    }
+
+    const result = state.result;
+    const doc = new JsPdf({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 14;
+    const contentWidth = pageWidth - margin * 2;
+    let cursorY = 0;
+
+    const addHeader = (title, addPage) => {
+      if (addPage) doc.addPage();
+      doc.setDrawColor(23, 79, 68);
+      doc.setLineWidth(0.6);
+      doc.line(margin, 22, pageWidth - margin, 22);
+      doc.setTextColor(23, 79, 68);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text("VORTEX MDF", margin, 13);
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.text("O corte exato do seu projeto.", margin, 18);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text(pdfText(title), pageWidth - margin, 13, { align: "right" });
+      doc.setFontSize(8);
+      doc.text("Pedido " + pdfText(order.orderCode), pageWidth - margin, 18, { align: "right" });
+      doc.setTextColor(25, 25, 25);
+      cursorY = 29;
+    };
+
+    const ensureSpace = (height, title) => {
+      if (cursorY + height <= pageHeight - 15) return;
+      addHeader(title || "ORÇAMENTO - CONTINUAÇÃO", true);
+    };
+
+    const writeWrapped = (text, options) => {
+      const opts = options || {};
+      const fontSize = opts.fontSize || 9;
+      const lineHeight = opts.lineHeight || 4.5;
+      const maxWidth = opts.maxWidth || contentWidth;
+      doc.setFont("helvetica", opts.bold ? "bold" : "normal");
+      doc.setFontSize(fontSize);
+      doc.setTextColor(...(opts.color || [35, 35, 35]));
+      const lines = doc.splitTextToSize(pdfText(text), maxWidth);
+      ensureSpace(lines.length * lineHeight + 1, opts.continuationTitle);
+      doc.text(lines, opts.x || margin, cursorY);
+      cursorY += lines.length * lineHeight + (opts.after == null ? 1.5 : opts.after);
+    };
+
+    const sectionTitle = (title) => {
+      ensureSpace(10);
+      cursorY += 2;
+      doc.setTextColor(23, 79, 68);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text(pdfText(title), margin, cursorY);
+      cursorY += 6;
+    };
+
+    addHeader("ORÇAMENTO", false);
+    writeWrapped("Cliente: " + (order.name || "Não informado"), { bold: true, fontSize: 10 });
+    writeWrapped("Telefone: " + (order.phone || "Não informado"), { fontSize: 9 });
+    writeWrapped("Emissão: " + new Date().toLocaleString("pt-BR"), { fontSize: 9 });
+    doc.setTextColor(23, 79, 68);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.textWithLink("Abrir configuração compartilhável", margin, cursorY, { url: order.shareUrl });
+    cursorY += 7;
+
+    sectionTitle("Resumo de valores");
+    const totalLabel = result.quoteConsultationRequired ? "Subtotal estimado" : "Valor estimado";
+    const summaryRows = [
+      ["Chapas necessárias", String(result.totalPanels)],
+      ["Peças Branco TX", formatDecimal(result.whiteTxPieceAreaM2) + " m² - R$ " + formatDecimal(result.whiteTxPieceCostTotal)],
+      ["Corte Router", String(result.totalCuts) + " trajetórias - R$ " + formatDecimal(result.cutCostTotal)],
+      ["Fita Branco TX", formatDecimal(result.edgeBandMaterialLengthM) + " m - R$ " + formatDecimal(result.edgeBandMaterialCostTotal)],
+      ["Colagem da fita", formatDecimal(result.edgeBandLengthM) + " m - R$ " + formatDecimal(result.edgeBandLaborCostTotal)],
+      [totalLabel, "R$ " + formatDecimal(result.totalCost)],
+    ];
+    summaryRows.forEach((row, index) => {
+      ensureSpace(8);
+      const isTotal = index === summaryRows.length - 1;
+      if (isTotal) {
+        doc.setFillColor(23, 79, 68);
+        doc.roundedRect(margin, cursorY - 4.5, contentWidth, 8, 1, 1, "F");
+        doc.setTextColor(255, 255, 255);
+      } else {
+        doc.setFillColor(index % 2 ? 245 : 238, index % 2 ? 248 : 244, index % 2 ? 247 : 242);
+        doc.rect(margin, cursorY - 4.5, contentWidth, 8, "F");
+        doc.setTextColor(35, 35, 35);
+      }
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.text(pdfText(row[0]), margin + 2, cursorY);
+      doc.text(pdfText(row[1]), pageWidth - margin - 2, cursorY, { align: "right" });
+      cursorY += 8;
+    });
+
+    sectionTitle("Fitas utilizadas por cor");
+    if (!result.edgeBandColorBreakdown.length) {
+      writeWrapped("Nenhuma fita selecionada.", { fontSize: 9 });
+    } else {
+      result.edgeBandColorBreakdown.forEach((group) => {
+        const material = group.hasMaterialPrice ? "material R$ " + formatDecimal(group.materialCost) : "material sob consulta";
+        writeWrapped("Fita " + group.color + ": " + formatDecimal(group.lengthM) + " m - " + material + " - colagem R$ " + formatDecimal(group.laborCost), { fontSize: 9 });
+      });
+    }
+
+    if (result.quoteConsultationRequired) {
+      sectionTitle("Valores sob consulta");
+      if (result.materialConsultationRequired) writeWrapped("Chapas: " + result.materialConsultationLabels.join(", ") + ".", { fontSize: 9 });
+      if (result.edgeBandConsultationRequired) writeWrapped("Fitas: " + result.edgeBandConsultationLabels.join(", ") + ".", { fontSize: 9 });
+      writeWrapped("O subtotal não inclui os materiais indicados acima.", { bold: true, fontSize: 9 });
+    }
+
+    sectionTitle("Peças do projeto");
+    (order.items || []).forEach((item) => {
+      const edgeInfo = normalizeEdgeSides(item.edgeSides).length
+        ? "Fita " + (item.edgeBandColor || "não informada") + ": " + edgeSideNames(item.edgeSides, true)
+        : "Sem fita";
+      writeWrapped(
+        (item.label || "Item") + " - qtd. " + Number(item.quantity || 1) + " - " + brandLabel(item.brand) + " - " + (item.color || "Sem cor") + " - " + String(item.thickness || "6") + " mm - " + Math.round(item.width) + " x " + Math.round(item.height) + " mm - " + edgeInfo,
+        { fontSize: 8, lineHeight: 4, continuationTitle: "ORÇAMENTO - PEÇAS" }
+      );
+    });
+
+    result.layouts.forEach((layout, panelIndex) => {
+      addHeader("PLANO DE CORTE - PAINEL " + (panelIndex + 1), true);
+      writeWrapped(brandLabel(layout.brand) + " - " + (layout.color || "Sem cor") + " - " + String(layout.thickness || "6") + " mm - " + Math.round(layout.width) + " x " + Math.round(layout.height) + " mm", { bold: true, fontSize: 9 });
+
+      const planTop = cursorY + 1;
+      const maxPlanWidth = contentWidth;
+      const maxPlanHeight = 190;
+      const scale = Math.min(maxPlanWidth / layout.width, maxPlanHeight / layout.height);
+      const planWidth = layout.width * scale;
+      const planHeight = layout.height * scale;
+      const planLeft = margin + (contentWidth - planWidth) / 2;
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(30, 30, 30);
+      doc.setLineWidth(0.5);
+      doc.rect(planLeft, planTop, planWidth, planHeight, "FD");
+
+      layout.items.forEach((item) => {
+        const x = planLeft + item.x * scale;
+        const y = planTop + item.y * scale;
+        const width = item.width * scale;
+        const height = item.height * scale;
+        doc.setFillColor(247, 247, 247);
+        doc.setDrawColor(60, 60, 60);
+        doc.setLineWidth(0.3);
+        doc.rect(x, y, width, height, "FD");
+
+        const sideCoordinates = {
+          top: [x, y, x + width, y],
+          right: [x + width, y, x + width, y + height],
+          bottom: [x + width, y + height, x, y + height],
+          left: [x, y + height, x, y],
+        };
+        normalizeEdgeSides(item.edgeSides).forEach((side) => {
+          const rgb = edgeBandPdfRgb(item.edgeBandColor);
+          const coordinates = sideCoordinates[side];
+          doc.setDrawColor(rgb[0], rgb[1], rgb[2]);
+          doc.setLineWidth(1.2);
+          doc.line(coordinates[0], coordinates[1], coordinates[2], coordinates[3]);
+        });
+
+        if (width >= 13 && height >= 8) {
+          doc.setTextColor(25, 25, 25);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(5.5);
+          const label = doc.splitTextToSize(pdfText(item.label || "Item"), Math.max(10, width - 2))[0];
+          doc.text(label, x + width / 2, y + height / 2 - 1, { align: "center" });
+          if (height >= 13) {
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(4.8);
+            doc.text(Math.round(item.width) + " x " + Math.round(item.height) + " mm", x + width / 2, y + height / 2 + 2.5, { align: "center" });
+          }
+        }
+      });
+
+      cursorY = planTop + planHeight + 6;
+      layout.items.forEach((item) => {
+        const edgeInfo = normalizeEdgeSides(item.edgeSides).length
+          ? " | Fita " + (item.edgeBandColor || "não informada") + ": " + edgeSideNames(item.edgeSides, true)
+          : " | Sem fita";
+        writeWrapped((item.label || "Item") + " - " + Math.round(item.width) + " x " + Math.round(item.height) + " mm" + edgeInfo, { fontSize: 7, lineHeight: 3.5, continuationTitle: "GABARITO - PAINEL " + (panelIndex + 1) });
+      });
+    });
+
+    const pageCount = doc.getNumberOfPages();
+    for (let pageNumber = 1; pageNumber <= pageCount; pageNumber += 1) {
+      doc.setPage(pageNumber);
+      doc.setDrawColor(190, 190, 190);
+      doc.setLineWidth(0.2);
+      doc.line(margin, pageHeight - 10, pageWidth - margin, pageHeight - 10);
+      doc.setTextColor(90, 90, 90);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7);
+      doc.text("Pedido " + pdfText(order.orderCode), margin, pageHeight - 6);
+      doc.text("Página " + pageNumber + " de " + pageCount, pageWidth - margin, pageHeight - 6, { align: "right" });
+    }
+
+    doc.setProperties({
+      title: "Orçamento " + order.orderCode + " - Vortex MDF",
+      subject: "Orçamento e planos de corte",
+      author: "Vortex MDF",
+      creator: "Vortex MDF",
+    });
+    return {
+      blob: doc.output("blob"),
+      filename: "orcamento-" + order.orderCode + ".pdf",
+    };
+  }
+
   async function sendEmailByForm(subject, body, attachments) {
     if (window.location.protocol === "file:") {
       throw new Error("FormSubmit exige pagina servida por servidor web.");
@@ -1626,7 +1903,14 @@
     formData.append("mensagem", body);
     const files = Array.isArray(attachments) ? attachments : [attachments];
     files.filter(Boolean).forEach((attachment, index) => {
-      const fieldName = index === 0 ? "attachment" : index === 1 ? "attachment_csv" : "attachment_" + (index + 1);
+      const extension = String(attachment.filename || "").split(".").pop().toLowerCase();
+      const fieldName = index === 0
+        ? "attachment"
+        : extension === "xlsx"
+          ? "attachment_excel"
+          : extension === "csv"
+            ? "attachment_csv"
+            : "attachment_" + (index + 1);
       formData.append(fieldName, attachment.blob, attachment.filename);
     });
 
@@ -1703,16 +1987,16 @@
       "Peças Branco TX: " + formatDecimal(state.result.whiteTxPieceAreaM2) + " m²; R$ " + formatDecimal(state.result.whiteTxPieceCostTotal) + " (6 mm: R$ 38,00/m²; 15 mm: R$ 54,00/m²; 18 mm: R$ 58,00/m²)",
       state.result.materialConsultationRequired ? "Valor da chapa sob consulta: " + state.result.materialConsultationLabels.join(", ") : "Chapas diferentes de Branco TX: consultar valor",
       "Custo do corte: R$ " + formatDecimal(state.result.cutCostTotal) + (state.cutMode === "saw" ? " (" + state.result.totalCuts + " operações x R$ 3,50; inclui 4 limpezas por chapa)" : " (R$ " + formatDecimal(state.result.routerRatePerM2) + "/m²)"),
-      "Fita de borda (material): " + state.result.edgeBandSideCount + " lados; " + formatDecimal(state.result.edgeBandLengthM) + " m com acréscimos; R$ " + formatDecimal(state.result.edgeBandMaterialCostTotal) + " (R$ " + formatDecimal(state.result.edgeBandMaterialRate) + "/m)",
+      "Fita Branco TX (material): " + formatDecimal(state.result.edgeBandMaterialLengthM) + " m com acréscimos; R$ " + formatDecimal(state.result.edgeBandMaterialCostTotal) + " (R$ " + formatDecimal(state.result.edgeBandMaterialRate) + "/m)",
       "Fitas utilizadas por cor:",
       ...(state.result.edgeBandColorBreakdown.length
-        ? state.result.edgeBandColorBreakdown.map((group) => "  - Fita " + group.color + ": " + formatDecimal(group.lengthM) + " m; material R$ " + formatDecimal(group.materialCost) + "; colagem R$ " + formatDecimal(group.laborCost))
+        ? state.result.edgeBandColorBreakdown.map((group) => "  - Fita " + group.color + ": " + formatDecimal(group.lengthM) + " m; material " + (group.hasMaterialPrice ? "R$ " + formatDecimal(group.materialCost) : "sob consulta") + "; colagem R$ " + formatDecimal(group.laborCost))
         : ["  - Nenhuma fita selecionada"]),
       "Colagem da fita: " + formatDecimal(state.result.edgeBandLengthM) + " m; R$ " + formatDecimal(state.result.edgeBandLaborCostTotal) + " (R$ " + formatDecimal(state.result.edgeBandLaborRate) + "/m)",
-      "Total de fita e colagem: R$ " + formatDecimal(state.result.edgeBandCostTotal),
-      (state.result.materialConsultationRequired ? "Subtotal estimado: R$ " : "Valor estimado: R$ ") + formatDecimal(estimatedValue),
+      "Total calculado de fita e colagem: R$ " + formatDecimal(state.result.edgeBandCostTotal) + (state.result.edgeBandConsultationRequired ? " + material sob consulta (" + state.result.edgeBandConsultationLabels.join(", ") + ")" : ""),
+      (state.result.quoteConsultationRequired ? "Subtotal estimado: R$ " : "Valor estimado: R$ ") + formatDecimal(estimatedValue),
       "Unidade de medida: milímetros (mm)",
-      "Anexos: planilha Excel completa e CSV de produção no formato da OP de referência.",
+      "Anexos: orçamento em PDF, planilha Excel completa e CSV de produção no formato da OP de referência.",
       "",
       "----- PAINEIS -----",
       panelsList,
@@ -1727,7 +2011,7 @@
     if (confirmBtn) confirmBtn.disabled = true;
     if (statusEl) {
       statusEl.classList.remove("is-error", "is-success");
-      statusEl.textContent = "Gerando a planilha e enviando o e-mail…";
+      statusEl.textContent = "Gerando o PDF e as planilhas para enviar o e-mail…";
     }
     try {
       const order = {
@@ -1737,12 +2021,13 @@
         shareUrl: url.toString(),
         items: readItemsFromForm(),
       };
+      const pdfAttachment = buildQuotePdf(order);
       const workbookAttachment = buildQuoteWorkbook(order);
       const productionCsvAttachment = buildProductionCsv(order);
-      await sendEmailByForm(subject, emailBody, [workbookAttachment, productionCsvAttachment]);
+      await sendEmailByForm(subject, emailBody, [pdfAttachment, workbookAttachment, productionCsvAttachment]);
       if (statusEl) {
         statusEl.classList.add("is-success");
-        statusEl.textContent = "Solicitação enviada com as planilhas Excel e CSV em anexo.";
+        statusEl.textContent = "Orçamento enviado com o PDF, o Excel e o CSV em anexo. Pedido: " + orderCode + ".";
       }
       setTimeout(closeOrderConfirmation, 1600);
     } catch (error) {
@@ -1805,11 +2090,11 @@
         formatDecimal(state.result.edgeBandLengthM) +
         " m de fita • R$ " +
         formatDecimal(state.result.totalCost) +
-        (state.result.materialConsultationRequired ? " + chapa sob consulta" : "");
+        (state.result.quoteConsultationRequired ? " + materiais sob consulta" : "");
     }
     if (link) link.value = shareUrl;
     if (status) {
-      status.textContent = "O e-mail incluirá todas as informações do orçamento e os arquivos Excel e CSV.";
+      status.textContent = "O e-mail incluirá todas as informações do orçamento e os arquivos PDF, Excel e CSV.";
       status.classList.remove("is-error", "is-success");
     }
     if (box) box.hidden = false;
@@ -1963,15 +2248,18 @@
     }
   }
 
-  function buildPrintSummaryPage(printArea) {
+  function buildPrintSummaryPage(printArea, orderCode) {
     const result = state.result;
     const name = String(document.getElementById("lead-name")?.value || "").trim() || "Não informado";
     const phone = String(document.getElementById("lead-phone")?.value || "").trim() || "Não informado";
     const items = readItemsFromForm();
-    const totalLabel = result.materialConsultationRequired ? "Subtotal estimado" : "Valor estimado";
-    const consultation = result.materialConsultationRequired
-      ? "Materiais sob consulta: " + result.materialConsultationLabels.join(", ") + "."
-      : "Chapas diferentes de Branco TX devem ter o valor consultado.";
+    const totalLabel = result.quoteConsultationRequired ? "Subtotal estimado" : "Valor estimado";
+    const consultationParts = [];
+    if (result.materialConsultationRequired) consultationParts.push("Chapas sob consulta: " + result.materialConsultationLabels.join(", ") + ".");
+    if (result.edgeBandConsultationRequired) consultationParts.push("Fitas sob consulta: " + result.edgeBandConsultationLabels.join(", ") + ".");
+    const consultation = consultationParts.length
+      ? consultationParts.join(" ") + " O subtotal não inclui esses materiais."
+      : "Chapas e fitas diferentes de Branco TX devem ter o valor consultado.";
     const itemRows = items.map((item) => {
       const edgeInfo = normalizeEdgeSides(item.edgeSides).length
         ? (item.edgeBandColor || "Não informada") + " - " + edgeSideNames(item.edgeSides, true)
@@ -1990,7 +2278,7 @@
     }).join("");
     const edgeColorRows = result.edgeBandColorBreakdown.length
       ? result.edgeBandColorBreakdown.map((group) => (
-          `<div><strong>Fita ${esc(group.color)}</strong><span>${formatDecimal(group.lengthM)} m</span><span>Material: R$ ${formatDecimal(group.materialCost)}</span><span>Colagem: R$ ${formatDecimal(group.laborCost)}</span></div>`
+          `<div><strong>Fita ${esc(group.color)}</strong><span>${formatDecimal(group.lengthM)} m</span><span>Material: ${group.hasMaterialPrice ? "R$ " + formatDecimal(group.materialCost) : "sob consulta"}</span><span>Colagem: R$ ${formatDecimal(group.laborCost)}</span></div>`
         )).join("")
       : "<div><span>Nenhuma fita selecionada.</span></div>";
 
@@ -2002,6 +2290,7 @@
       '<div class="print-document-type">ORÇAMENTO</div>',
       "</header>",
       '<div class="print-customer-grid">',
+      `<div><span>Pedido</span><strong>${esc(orderCode || buildOrderCode())}</strong></div>`,
       `<div><span>Cliente</span><strong>${esc(name)}</strong></div>`,
       `<div><span>Telefone</span><strong>${esc(phone)}</strong></div>`,
       `<div><span>Emissão</span><strong>${esc(new Date().toLocaleString("pt-BR"))}</strong></div>`,
@@ -2013,7 +2302,7 @@
       `<div><span>Peças posicionadas</span><strong>${result.raw.placedCount}</strong></div>`,
       `<div><span>Material Branco TX</span><strong>R$ ${formatDecimal(result.whiteTxPieceCostTotal)}</strong><small>${formatDecimal(result.whiteTxPieceAreaM2)} m²</small></div>`,
       `<div><span>Corte Router</span><strong>R$ ${formatDecimal(result.cutCostTotal)}</strong><small>${result.totalCuts} trajetórias</small></div>`,
-      `<div><span>Material da fita</span><strong>R$ ${formatDecimal(result.edgeBandMaterialCostTotal)}</strong><small>${formatDecimal(result.edgeBandLengthM)} m × R$ ${formatDecimal(result.edgeBandMaterialRate)}</small></div>`,
+      `<div><span>Fita Branco TX</span><strong>R$ ${formatDecimal(result.edgeBandMaterialCostTotal)}</strong><small>${formatDecimal(result.edgeBandMaterialLengthM)} m × R$ ${formatDecimal(result.edgeBandMaterialRate)}</small></div>`,
       `<div><span>Colagem da fita</span><strong>R$ ${formatDecimal(result.edgeBandLaborCostTotal)}</strong><small>${formatDecimal(result.edgeBandLengthM)} m × R$ ${formatDecimal(result.edgeBandLaborRate)}</small></div>`,
       `<div class="print-total"><span>${totalLabel}</span><strong>R$ ${formatDecimal(result.totalCost)}</strong></div>`,
       "</div>",
@@ -2034,7 +2323,7 @@
     const printArea = document.getElementById("print-area");
     if (!printArea) return;
     printArea.innerHTML = "";
-    if (options?.includeQuoteSummary) buildPrintSummaryPage(printArea);
+    if (options?.includeQuoteSummary) buildPrintSummaryPage(printArea, options.orderCode);
 
     state.result.layouts.forEach((layout, panelIndex) => {
       const page = document.createElement("div");
@@ -2169,8 +2458,9 @@
       alert("Calcule o layout antes de imprimir o orçamento.");
       return;
     }
-    buildPrintPages({ includeQuoteSummary: true });
-    printDocument("Orçamento Vortex MDF");
+    const orderCode = buildOrderCode();
+    buildPrintPages({ includeQuoteSummary: true, orderCode: orderCode });
+    printDocument("Orçamento " + orderCode + " - Vortex MDF");
   }
 
   function printPanels() {

@@ -660,7 +660,12 @@ summary:focus-visible {
   font-size: 0.82rem;
 }
 
-.edge-color-breakdown > div {
+.edge-color-list {
+  display: grid;
+  gap: 4px;
+}
+
+.edge-color-list > div {
   line-height: 1.35;
 }
 
