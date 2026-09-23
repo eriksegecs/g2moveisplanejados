@@ -1360,17 +1360,19 @@
       const materialThickness = { "15": "15.5", "18": "18.5" }[thickness] || thickness || "0";
       const brandKey = normalizeBrand(item.brand || state.selectedBrand);
       const brand = BRANDS.find((candidate) => candidate.key === brandKey);
+      // Na ordem de produção, comprimento corresponde à altura informada da peça.
+      // Manter essa orientação é essencial para painéis madeirados com sentido de veio.
+      const length = Number(item.height || 0).toFixed(1);
       const width = Number(item.width || 0).toFixed(1);
-      const height = Number(item.height || 0).toFixed(1);
       rows.push([
         label,
         label,
         label,
         Math.max(1, Math.round(Number(item.quantity || 1))),
+        length,
+        length,
         width,
         width,
-        height,
-        height,
         "MDF_" + materialThickness + "_" + normalizeProductionCode(color),
         nestingFile,
         "",
