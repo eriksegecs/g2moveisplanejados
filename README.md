@@ -44,6 +44,17 @@ O botão `Enviar orçamento` abre uma confirmação e envia para `vortexmdf01@gm
 
 No CSV de produção, `comprimento_bruto` e `comprimento_liquido` recebem a altura informada da peça, enquanto `largura_bruta` e `largura_liquida` recebem a largura. Essa orientação preserva o sentido correto dos painéis madeirados.
 
+As fitas acompanham essa mesma conversão de eixos, apenas no CSV:
+
+| Lado selecionado no site | Coluna no CSV de produção |
+| --- | --- |
+| Superior | `borda_esquerda` |
+| Inferior | `borda_direita` |
+| Esquerdo | `borda_frontal` |
+| Direito | `borda_posterior` |
+
+O plano visual, a impressão e o Excel de gabarito continuam usando os lados correspondentes às dimensões mostradas no site. O CSV baixado em `Compartilhar` e o anexado ao e-mail usam o mesmo exportador. Para validar medidas e bordas: `node --test scripts/production-csv.test.js`.
+
 O envio usa o código oculto e ativado do FormSubmit associado a `vortexmdf01@gmail.com`, com `multipart/form-data` e campos de arquivo separados para PDF, Excel e CSV. A URL pública do formulário também é informada. O PDF é gerado no navegador com jsPDF 2.5.1 e a planilha com SheetJS 0.20.3.
 
 ## Personalização rápida

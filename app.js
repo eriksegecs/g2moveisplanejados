@@ -1379,10 +1379,12 @@
         "",
         principalNote,
         "Marca: " + (brand ? brand.label : brandKey) + " | Corte: " + cutLabel,
-        edgeFor("top"),
-        edgeFor("bottom"),
+        // As bordas acompanham a troca dos eixos comprimento/altura e largura no CSV.
+        // Frontal/posterior percorrem a altura; esquerda/direita, a largura da peça no site.
         edgeFor("left"),
         edgeFor("right"),
+        edgeFor("top"),
+        edgeFor("bottom"),
         "",
         order.name || "",
         order.orderCode || "",
