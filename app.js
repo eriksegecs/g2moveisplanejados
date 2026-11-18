@@ -12,9 +12,9 @@
     edgeBandLaborRate: 2.5,
     edgeBandAllowance: 50,
     whiteTxPieceRate: {
-      "6": 38,
-      "15": 54,
-      "18": 58,
+      "6": 45,
+      "15": 80,
+      "18": 85,
     },
     routerRate: {
       "6": 30,
@@ -1988,7 +1988,7 @@
       (state.cutMode === "saw" ? "Operações únicas de corte: " : "Trajetórias (4 lados por peça): ") + state.result.totalCuts,
       "Peças posicionadas: " + state.result.raw.placedCount,
       "Peças não posicionadas: " + state.result.raw.unplacedCount,
-      "Peças Branco TX: " + formatDecimal(state.result.whiteTxPieceAreaM2) + " m²; R$ " + formatDecimal(state.result.whiteTxPieceCostTotal) + " (6 mm: R$ 38,00/m²; 15 mm: R$ 54,00/m²; 18 mm: R$ 58,00/m²)",
+      "Peças Branco TX: " + formatDecimal(state.result.whiteTxPieceAreaM2) + " m²; R$ " + formatDecimal(state.result.whiteTxPieceCostTotal) + " (6 mm: R$ 45,00/m²; 15 mm: R$ 80,00/m²; 18 mm: R$ 85,00/m²)",
       state.result.materialConsultationRequired ? "Valor da chapa sob consulta: " + state.result.materialConsultationLabels.join(", ") : "Chapas diferentes de Branco TX: consultar valor",
       "Custo do corte: R$ " + formatDecimal(state.result.cutCostTotal) + (state.cutMode === "saw" ? " (" + state.result.totalCuts + " operações x R$ 3,50; inclui 4 limpezas por chapa)" : " (R$ " + formatDecimal(state.result.routerRatePerM2) + "/m²)"),
       "Fita Branco TX (material): " + formatDecimal(state.result.edgeBandMaterialLengthM) + " m com acréscimos; R$ " + formatDecimal(state.result.edgeBandMaterialCostTotal) + " (R$ " + formatDecimal(state.result.edgeBandMaterialRate) + "/m)",

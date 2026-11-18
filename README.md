@@ -23,7 +23,7 @@ Aplicação 100% frontend para orçamento, plano de corte e fita de borda, sem F
 - Temporariamente, o único tipo de corte disponível na interface é `Router`; links antigos configurados para seccionadora também são convertidos para Router.
 - Na Router, são consideradas quatro trajetórias por peça e o serviço custa R$ 30,00 por m² cortado, em todas as espessuras.
 - A lógica de seccionadora permanece preservada no código para reativação futura, mas não pode ser selecionada nesta versão.
-- O orçamento não cobra o valor da chapa inteira. Para Branco TX, utiliza a área das peças: R$ 38,00/m² em 6 mm, R$ 54,00/m² em 15 mm e R$ 58,00/m² em 18 mm.
+- O orçamento não cobra o valor da chapa inteira. Para Branco TX, utiliza a área das peças: R$ 45,00/m² em 6 mm, R$ 80,00/m² em 15 mm e R$ 85,00/m² em 18 mm.
 - Cores diferentes de Branco TX e espessuras sem tarifa cadastrada ficam marcadas como valor da chapa sob consulta.
 - O material da fita Branco TX custa R$ 0,65 por metro. Para outras cores de fita, a metragem é exibida e o valor do material fica sob consulta.
 - A colagem custa R$ 2,50 por metro independentemente da cor. Material e colagem usam o comprimento calculado com acréscimo de 50 mm em cada lado selecionado.
